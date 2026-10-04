@@ -86,5 +86,16 @@ Error generating stack: `+u.message+`
     @media(max-width:640px){#soverix-ultimate-entry{right:10px;bottom:10px;width:calc(100vw - 20px);padding:11px 12px}#soverix-ultimate-entry .ultimate-entry-copy{font-size:10px}}
   </style>
   <aside id="soverix-ultimate-entry" aria-label="New 3D Ludo board"><div class="ultimate-entry-title">✨ Soverix Ludo 3D Ultimate</div><div class="ultimate-entry-copy">আপনার দেওয়া নতুন বোর্ডটি আলাদা পেজে খুলুন—বর্তমান Ludo অপরিবর্তিত থাকবে।</div><a href="earnbd-ludo-3d-ultimate.html">Open New 3D Board →</a></aside>
+  <style>
+    /* Keep the separate-board shortcut visible without covering the game cards. */
+    #soverix-ultimate-entry{top:calc(78px + env(safe-area-inset-top));bottom:auto;right:18px;width:min(272px,calc(100vw - 36px));padding:11px 12px;border-radius:16px;box-shadow:0 12px 30px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.14)}
+    #soverix-ultimate-entry .ultimate-entry-title{font-size:12px}
+    #soverix-ultimate-entry .ultimate-entry-copy{font-size:10px;line-height:1.35}
+    #soverix-ultimate-entry a{margin-top:8px;padding:8px 10px;font-size:10px;box-shadow:0 3px 0 #8a5a00}
+    @media(max-width:640px){#soverix-ultimate-entry{top:calc(72px + env(safe-area-inset-top));right:10px;width:min(250px,calc(100vw - 20px));padding:10px 11px}}
+  </style>
+  <script>
+    (function(){if(new URLSearchParams(location.search).get('login')!=='1')return;window.addEventListener('load',function(){var b=document.getElementById('earn-account-launcher');if(b)b.click()})})();
+  </script>
 </body>
 </html>
