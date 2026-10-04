@@ -14,3 +14,13 @@ Included:
 - Firebase web configuration prepared for the next online-room pass
 
 The Firebase configuration is a browser configuration, not a service-account secret. Keep the Realtime Database rules protected and publish `database.rules.json` only after reviewing the access policy.
+
+## Firebase online room setup
+
+1. In Firebase Authentication, enable Email/Password.
+2. In Realtime Database, choose the Singapore (`asia-southeast1`) database used by the HTML config.
+3. Replace the database rules with `database.rules.json`.
+4. Open `earnbd-ludo-complete.html`, register/login, then create a room and share the invite link.
+5. Test with two separate browsers or phones; each player must use a different account.
+
+The room supports up to four players, live member presence, turn rotation, emoji reactions, action history, host handoff, and disconnect cleanup. The original offline V11 board remains the gameplay surface.
