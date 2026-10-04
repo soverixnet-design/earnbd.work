@@ -299,6 +299,7 @@ Error generating stack: `+u.message+`
   .soverix-home-mark{font-size:clamp(17px,2.1vw,24px)!important;line-height:1!important;filter:drop-shadow(0 2px 2px rgba(0,0,0,.38))}
   html[data-soverix-theme="ocean"] #soverix-control-dock{border-color:rgba(56,189,248,.68)}html[data-soverix-theme="emerald"] #soverix-control-dock{border-color:rgba(52,211,153,.68)}html[data-soverix-theme="neon"] #soverix-control-dock{border-color:rgba(232,121,249,.72)}html[data-soverix-theme="sunset"] #soverix-control-dock{border-color:rgba(251,146,60,.72)}
   @media(max-width:640px){#soverix-control-dock{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:7px}.soverix-dock-heading{grid-column:1/-1}#soverix-control-dock>#soverix-theme-panel,#soverix-control-dock>.soverix-emoji-pop,#soverix-control-dock>#earn-room-panel,#soverix-control-dock>#soverix-lb-panel,#soverix-control-dock>#soverix-profile-panel{grid-column:1/-1}}
+  @media(max-width:640px){#root .soverix-board-stage>.mt-5{margin-top:98px!important}}
 </style>
 <aside id="soverix-control-dock" aria-label="Game controls"><div class="soverix-dock-heading">Game Controls</div></aside>
 <script>
@@ -321,6 +322,26 @@ Error generating stack: `+u.message+`
     root.querySelectorAll('span').forEach(function(x){var t=(x.textContent||'').trim();if(t.indexOf('🛡')>-1)x.classList.add('soverix-safe-mark');if(t.indexOf('🏠')>-1)x.classList.add('soverix-home-mark')});
   }
   markBoard();setInterval(markBoard,700);
+})();
+</script>
+<script>
+/* Anchor the active die to one reserved frame beside the board (or below it on phones). */
+(function(){
+  function anchorDice(){
+    var shell=document.querySelector('.soverix-board-shell');
+    var die=document.querySelector('.soverix-outside-dice');
+    if(!die){die=[].slice.call(document.querySelectorAll('div[style*="perspective"]')).find(function(x){return x.style.width==='64px'&&x.style.height==='64px'});if(die)die.classList.add('soverix-outside-dice')}
+    if(!shell||!die)return;
+    var r=shell.getBoundingClientRect(),mobile=window.innerWidth<=640;
+    die.style.setProperty('position','fixed','important');
+    die.style.setProperty('right','auto','important');
+    die.style.setProperty('left',Math.round(mobile?(r.left+r.width/2-32):Math.max(12,r.left-86))+'px','important');
+    die.style.setProperty('top',Math.round(mobile?(r.bottom+12):(r.top+10))+'px','important');
+    die.style.setProperty('transform','none','important');
+    die.style.setProperty('margin','0','important');
+    die.style.setProperty('pointer-events','auto','important');
+  }
+  anchorDice();setInterval(anchorDice,350);window.addEventListener('resize',anchorDice);window.addEventListener('scroll',anchorDice,{passive:true});
 })();
 </script>
 </html>
