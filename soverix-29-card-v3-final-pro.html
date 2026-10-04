@@ -32,9 +32,13 @@ Error generating stack: `+o.message+`
   <script>
     (function(){
       var sound=true,vibrate=true,effects=true,ctx=null;
+      try{sound=localStorage.getItem('soverix29-sound')!=='off';vibrate=localStorage.getItem('soverix29-vibrate')!=='off';effects=localStorage.getItem('soverix29-effects')!=='off'}catch(e){}
       function tone(freq,dur){if(!sound)return;try{ctx=ctx||new(window.AudioContext||window.webkitAudioContext)();var o=ctx.createOscillator(),g=ctx.createGain();o.frequency.value=freq;o.type='sine';g.gain.setValueAtTime(.0001,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.1,ctx.currentTime+.02);g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+dur);o.connect(g).connect(ctx.destination);o.start();o.stop(ctx.currentTime+dur+.02)}catch(e){}}
       function tap(){tone(520,.12);if(vibrate&&navigator.vibrate)navigator.vibrate(18)}function emoji(){var x=document.createElement('span');x.className='soverix29-float';x.textContent=['👏','🔥','🎉','😄'][Math.floor(Math.random()*4)];document.body.appendChild(x);setTimeout(function(){x.remove()},1050)}
-      document.getElementById('soverix29-sound').onclick=function(){sound=!sound;this.classList.toggle('active',sound);this.textContent=sound?'🔊 Sound':'🔇 Muted';if(sound)tap()};document.getElementById('soverix29-vibrate').onclick=function(){vibrate=!vibrate;this.classList.toggle('active',vibrate);this.textContent=vibrate?'📳 Vibration':'📴 Vibration off'};document.getElementById('soverix29-effects').onclick=function(){effects=!effects;this.classList.toggle('active',effects);document.body.classList.toggle('soverix29-effects-off',!effects);this.textContent=effects?'✨ Effects':'⏸ Effects off'};
+      var sb=document.getElementById('soverix29-sound'),vb=document.getElementById('soverix29-vibrate'),eb=document.getElementById('soverix29-effects');
+      function syncButtons(){sb.classList.toggle('active',sound);sb.textContent=sound?'🔊 Sound':'🔇 Muted';vb.classList.toggle('active',vibrate);vb.textContent=vibrate?'📳 Vibration':'📴 Vibration off';eb.classList.toggle('active',effects);eb.textContent=effects?'✨ Effects':'⏸ Effects off';document.body.classList.toggle('soverix29-effects-off',!effects)}
+      syncButtons();
+      sb.onclick=function(){sound=!sound;try{localStorage.setItem('soverix29-sound',sound?'on':'off')}catch(e){}syncButtons();if(sound)tap()};vb.onclick=function(){vibrate=!vibrate;try{localStorage.setItem('soverix29-vibrate',vibrate?'on':'off')}catch(e){}syncButtons()};eb.onclick=function(){effects=!effects;try{localStorage.setItem('soverix29-effects',effects?'on':'off')}catch(e){}syncButtons()};
       document.addEventListener('click',function(e){if(e.target.closest('#soverix29-tools'))return;var el=e.target.closest('#root [class*="cursor-pointer"]');if(el){tap();if(Math.random()<.12)emoji()}},true);
     })();
   </script>
