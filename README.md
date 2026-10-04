@@ -11,6 +11,7 @@ Included:
 - Dice/move/capture/win sound effects
 - Emoji/chat panel
 - Optional Bot Assist beta button for offline testing (disabled by default)
+- New Game control for a safe offline reset (blocked while an online room is active)
 - Firebase web configuration prepared for the next online-room pass
 
 The Firebase configuration is a browser configuration, not a service-account secret. Keep the Realtime Database rules protected and publish `database.rules.json` only after reviewing the access policy.

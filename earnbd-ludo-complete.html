@@ -125,8 +125,11 @@ Error generating stack: `+u.message+`
   #soverix-bot-assist{position:fixed;right:16px;bottom:16px;z-index:250;padding:10px 13px;border:1px solid #ffffff33;border-radius:999px;background:#0a0a14dd;color:#fff;font:800 11px system-ui;box-shadow:0 8px 24px #0007;cursor:pointer}
   #soverix-bot-assist.active{background:linear-gradient(135deg,#8b5cf6,#2563eb);border-color:#c4b5fd}
   @media (max-width:640px){#soverix-bot-assist{right:12px;bottom:118px}}
+  #soverix-new-game{position:fixed;right:16px;top:62px;z-index:250;padding:9px 12px;border:1px solid #ffffff33;border-radius:999px;background:#0a0a14dd;color:#fff;font:800 11px system-ui;box-shadow:0 8px 24px #0007;cursor:pointer}
+  @media (max-width:640px){#soverix-new-game{right:12px;top:60px}}
 </style>
 <button id="soverix-bot-assist" type="button" aria-pressed="false">🤖 Bot Assist</button>
+<button id="soverix-new-game" type="button">🔄 New Game</button>
 <script>
   (function(){
     var btn=document.getElementById('soverix-bot-assist'),enabled=false,busy=false,lastTurn='';
@@ -138,5 +141,8 @@ Error generating stack: `+u.message+`
     btn.addEventListener('click',function(){enabled=!enabled;btn.classList.toggle('active',enabled);btn.setAttribute('aria-pressed',String(enabled));btn.textContent=enabled?'🤖 Bot Assist on':'🤖 Bot Assist';if(!enabled){busy=false;lastTurn=''}});
     setInterval(step,900);
   })();
+</script>
+<script>
+  (function(){var b=document.getElementById('soverix-new-game');if(!b)return;b.addEventListener('click',function(){var live=document.getElementById('earn-room-live');if(live&&!live.hidden){var s=document.getElementById('earn-room-status');if(s)s.textContent='Leave the online room before starting a new offline game.';return}if(window.confirm('Start a new offline game?'))location.reload()})})();
 </script>
 </html>
