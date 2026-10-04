@@ -349,4 +349,40 @@ Error generating stack: `+u.message+`
   anchorDice();setInterval(anchorDice,350);window.addEventListener('resize',anchorDice);window.addEventListener('scroll',anchorDice,{passive:true});
 })();
 </script>
+<style>
+  /* New 3D Ultimate board treatment: keep the existing 15×15/gameplay DOM,
+     but use the uploaded design's deep frame and a calm neutral finish at the
+     exact centre so no multicolour tile distracts from the path. */
+  #root .soverix-board-shell{
+    background:linear-gradient(145deg,#334155 0%,#1e293b 48%,#0f172a 100%) !important;
+    border:8px solid #1e293b !important;
+    padding:8px !important;
+    border-radius:18px !important;
+    box-shadow:0 0 0 1px rgba(255,255,255,.08),0 18px 0 #0f172a,0 26px 30px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.2) !important;
+    isolation:isolate;
+  }
+  #root .soverix-board-shell > [class*="grid-cols-15"]{
+    background:#fdfbf7 !important;
+    border-radius:12px !important;
+    box-shadow:inset 0 0 0 1px rgba(15,23,42,.18),inset 0 10px 30px rgba(15,23,42,.12) !important;
+  }
+  /* Children 97–129 are the 3×3 centre of the 15×15 board.  Override the
+     old conic-gradient at CSS level so React re-renders cannot bring it back. */
+  #root .soverix-board-shell > [class*="grid-cols-15"] > :nth-child(97),
+  #root .soverix-board-shell > [class*="grid-cols-15"] > :nth-child(98),
+  #root .soverix-board-shell > [class*="grid-cols-15"] > :nth-child(99),
+  #root .soverix-board-shell > [class*="grid-cols-15"] > :nth-child(112),
+  #root .soverix-board-shell > [class*="grid-cols-15"] > :nth-child(113),
+  #root .soverix-board-shell > [class*="grid-cols-15"] > :nth-child(114),
+  #root .soverix-board-shell > [class*="grid-cols-15"] > :nth-child(127),
+  #root .soverix-board-shell > [class*="grid-cols-15"] > :nth-child(128),
+  #root .soverix-board-shell > [class*="grid-cols-15"] > :nth-child(129){
+    background:#fdfbf7 !important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.86),inset 0 -1px 2px rgba(15,23,42,.12),2px 2px 4px rgba(15,23,42,.08) !important;
+    transform:translateZ(2px) !important;
+  }
+  #root .soverix-board-shell > [class*="grid-cols-15"] > :nth-child(113){
+    background:radial-gradient(circle,#fffefa 0%,#fdfbf7 72%) !important;
+  }
+</style>
 </html>
