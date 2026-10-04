@@ -159,9 +159,18 @@ Error generating stack: `+u.message+`
 <script>
   (function(){var b=document.getElementById('soverix-new-game');if(!b)return;b.addEventListener('click',function(){var live=document.getElementById('earn-room-live');if(live&&!live.hidden){var s=document.getElementById('earn-room-status');if(s)s.textContent='Leave the online room before starting a new offline game.';return}if(window.confirm('Start a new offline game?'))location.reload()})})();
 </script>
+<script>
+  (function(){function mark(){document.querySelectorAll('[class*="grid-cols-15"]').forEach(function(g){if(g.parentElement)g.parentElement.classList.add('soverix-board-shell')})}mark();setInterval(mark,500)})();
+</script>
 <style>
   /* Keep the original 15x15 board centered with extra mobile header breathing room. */
   @media (max-width:640px){[class*="grid-cols-15"]{margin-top:clamp(22px,7vw,44px)!important;margin-bottom:12px!important}}
+</style>
+<style>
+  /* Responsive board frame: larger on desktop, full-width and centered on mobile. */
+  #root div:has(> [class*="grid-cols-15"]),#root .soverix-board-shell{width:min(92vw,640px)!important;max-width:640px!important;aspect-ratio:1!important;margin-left:auto!important;margin-right:auto!important;align-self:center!important}
+  #root [class*="grid-cols-15"]{margin-top:0!important}
+  @media(max-width:640px){#root div:has(> [class*="grid-cols-15"]),#root .soverix-board-shell{width:calc(100vw - 16px)!important;max-width:none!important;margin-top:clamp(34px,8vh,72px)!important;margin-bottom:calc(96px + env(safe-area-inset-bottom))!important}}
 </style>
 <style>
   #soverix-lb-launcher{position:fixed;right:16px;bottom:16px;z-index:255;padding:10px 14px;border:1px solid #f8d57a66;border-radius:999px;background:#171426ee;color:#fff;font:900 11px system-ui;box-shadow:0 8px 24px #0007;cursor:pointer}
