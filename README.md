@@ -4,11 +4,10 @@
 
 Included:
 
-- 2-player and 4-player offline matches
-- Bot opponents with Smart/Easy difficulty
-- Smaller 15×15 board with player dice/status cards beside it
+- 2-player and 4-player offline/pass-and-play matches
+- Original 15×15 3D board with player dice/status cards beside it
 - Token movement, six-to-start, captures, safe cells and exact home
-- Classic, Neon and Forest themes
+- Classic, Ocean, Emerald, Neon and Sunset board themes
 - Dice/move/capture/win sound effects
 - Emoji/chat panel
 - Firebase web configuration prepared for the next online-room pass
