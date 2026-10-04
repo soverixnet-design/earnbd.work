@@ -236,4 +236,10 @@ Error generating stack: `+u.message+`
     markLayout();setInterval(markLayout,500);
   })();
 </script>
+<style>
+  /* Compact centered board layout: keep the original grid, reduce only its frame size. */
+  #root .soverix-board-stage{display:grid!important;grid-template-columns:minmax(0,1fr)!important;justify-items:center!important;align-content:start!important;width:100%!important;min-width:0!important;row-gap:12px!important}
+  #root div:has(> [class*="grid-cols-15"]),#root .soverix-board-shell{width:min(88vw,560px)!important;max-width:560px!important;margin-left:auto!important;margin-right:auto!important}
+  @media(max-width:640px){#root div:has(> [class*="grid-cols-15"]),#root .soverix-board-shell{width:calc(100vw - 28px)!important;max-width:560px!important;margin-top:clamp(24px,5vh,44px)!important;margin-bottom:calc(86px + env(safe-area-inset-bottom))!important}}
+</style>
 </html>
