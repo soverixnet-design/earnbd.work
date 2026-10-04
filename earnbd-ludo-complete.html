@@ -67,8 +67,8 @@ Error generating stack: `+u.message+`
 </body>
 <style>
   /* Keep the original 3D die outside the board without rebuilding the board. */
-  .soverix-outside-dice{position:fixed!important;left:50vw!important;top:calc(100vh - 92px)!important;bottom:auto!important;z-index:240!important;transform:translateX(-50%)!important;margin:0!important}
-  @media (max-width:640px){.soverix-outside-dice{left:50vw!important;top:calc(100vh - 158px)!important;bottom:auto!important}}
+  .soverix-outside-dice{position:absolute!important;left:-78px!important;top:0!important;z-index:240!important;transform:none!important;margin:0!important}
+  @media (max-width:640px){.soverix-outside-dice{left:50%!important;top:-78px!important;transform:translateX(-50%)!important}}
 </style>
 <style>
   #earn-room-launcher{position:fixed;left:16px;bottom:16px;z-index:250;padding:10px 14px;border:1px solid rgba(255,255,255,.22);border-radius:999px;background:rgba(10,10,20,.86);color:#fff;font:800 12px system-ui;box-shadow:0 8px 24px #0007;cursor:pointer}
@@ -87,7 +87,13 @@ Error generating stack: `+u.message+`
           /* React's 3D wrapper creates a containing block for fixed children.
              Remove only that wrapper transform so the die can sit in the
              viewport center without changing the original board geometry. */
-          if(el.parentElement&&getComputedStyle(el.parentElement).transform!=='none')el.parentElement.style.transform='none';
+          if(el.parentElement){
+            el.parentElement.style.transform='none';
+            el.parentElement.style.width='100%';
+            el.parentElement.style.height='100%';
+            el.parentElement.style.left='0';
+            el.parentElement.style.top='0';
+          }
         }
       });
     }
