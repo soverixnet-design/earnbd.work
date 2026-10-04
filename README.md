@@ -16,6 +16,10 @@ Included:
 
 The Firebase configuration is a browser configuration, not a service-account secret. Keep the Realtime Database rules protected and publish `database.rules.json` only after reviewing the access policy.
 
+## Security note
+
+Never place OpenAI/API secret keys, passwords, service-account JSON files, or private tokens in these HTML files, ZIP bundles, or GitHub Pages. Browser Firebase config is not a substitute for database rules; keep authentication and database access protected.
+
 ## Firebase online room setup
 
 1. In Firebase Authentication, enable Email/Password.
