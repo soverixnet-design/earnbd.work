@@ -333,10 +333,15 @@ Error generating stack: `+u.message+`
     if(!die){die=[].slice.call(document.querySelectorAll('div[style*="perspective"]')).find(function(x){return x.style.width==='64px'&&x.style.height==='64px'});if(die)die.classList.add('soverix-outside-dice')}
     if(!shell||!die)return;
     var r=shell.getBoundingClientRect(),mobile=window.innerWidth<=640;
-    die.style.setProperty('position','fixed','important');
+    /* Reset the player-corner anchor.  The original die is rendered inside
+       one of four corner wrappers; neutralising that wrapper keeps the die
+       tied to the board shell instead of jumping between corners. */
+    var host=die.parentElement&&die.parentElement.parentElement;
+    if(host){host.style.position='absolute';host.style.left='0';host.style.top='0';host.style.right='auto';host.style.bottom='auto';host.style.width='0px';host.style.height='0px';host.style.transform='none';host.style.pointerEvents='none'}
+    die.style.setProperty('position','absolute','important');
     die.style.setProperty('right','auto','important');
-    die.style.setProperty('left',Math.round(mobile?(r.left+r.width/2-32):Math.max(12,r.left-86))+'px','important');
-    die.style.setProperty('top',Math.round(mobile?(r.bottom+12):(r.top+10))+'px','important');
+    die.style.setProperty('left',Math.round(mobile?(r.width/2-32):-86)+'px','important');
+    die.style.setProperty('top',Math.round(mobile?(r.height+12):10)+'px','important');
     die.style.setProperty('transform','none','important');
     die.style.setProperty('margin','0','important');
     die.style.setProperty('pointer-events','auto','important');
