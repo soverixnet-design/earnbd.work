@@ -241,7 +241,7 @@ Error generating stack: `+u.message+`
 </script>
 <style>
   /* Compact centered board layout: keep the original grid, reduce only its frame size. */
-  #root .soverix-board-stage{display:grid!important;grid-template-columns:minmax(0,1fr)!important;justify-items:center!important;align-content:start!important;width:100%!important;min-width:0!important;row-gap:12px!important}
+  #root .soverix-board-stage{display:grid!important;grid-template-columns:minmax(0,1fr)!important;justify-items:center!important;align-content:start!important;width:100%!important;min-width:0!important;row-gap:12px!important;padding-top:clamp(46px,7vh,78px)!important;box-sizing:border-box!important}
   #root div:has(> [class*="grid-cols-15"]),#root .soverix-board-shell{width:min(88vw,560px)!important;max-width:560px!important;margin-left:auto!important;margin-right:auto!important}
   @media(max-width:640px){#root div:has(> [class*="grid-cols-15"]),#root .soverix-board-shell{width:calc(100vw - 28px)!important;max-width:560px!important;margin-top:clamp(24px,5vh,44px)!important;margin-bottom:calc(86px + env(safe-area-inset-bottom))!important}}
 </style>
@@ -293,7 +293,8 @@ Error generating stack: `+u.message+`
   @media(max-width:1100px){#soverix-control-dock{position:relative;left:auto;top:auto;width:min(560px,calc(100% - 24px));margin:14px auto 96px}}
   @media(max-width:640px){#soverix-control-dock{width:calc(100% - 24px);margin:12px auto calc(96px + env(safe-area-inset-bottom));padding:10px;border-radius:16px}.soverix-dock-heading{font-size:9px}#soverix-control-dock>button{min-height:38px!important;padding:8px 10px!important;font-size:10px!important}}
   #root.soverix-playing-root{min-height:0!important;overflow:visible!important}
-  .soverix-outside-dice{filter:drop-shadow(0 12px 18px rgba(0,0,0,.52));isolation:isolate;outline:1px solid rgba(248,213,122,.48);outline-offset:8px;border-radius:16px}
+  .soverix-outside-dice{filter:drop-shadow(0 12px 18px rgba(0,0,0,.52));isolation:isolate;outline:1px solid rgba(248,213,122,.48);outline-offset:8px;border-radius:16px;pointer-events:auto!important;cursor:pointer!important}
+  .soverix-outside-dice::before{content:"";position:absolute;inset:-14px;border:1px solid rgba(248,213,122,.56);border-radius:20px;background:linear-gradient(145deg,rgba(7,31,68,.9),rgba(20,20,48,.72));box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 10px 24px rgba(0,0,0,.42);z-index:-1;pointer-events:none}
   .soverix-safe-mark{font-size:clamp(10px,1.5vw,15px)!important;line-height:1!important;filter:drop-shadow(0 1px 2px rgba(0,0,0,.42));opacity:.9}
   .soverix-home-mark{font-size:clamp(17px,2.1vw,24px)!important;line-height:1!important;filter:drop-shadow(0 2px 2px rgba(0,0,0,.38))}
   html[data-soverix-theme="ocean"] #soverix-control-dock{border-color:rgba(56,189,248,.68)}html[data-soverix-theme="emerald"] #soverix-control-dock{border-color:rgba(52,211,153,.68)}html[data-soverix-theme="neon"] #soverix-control-dock{border-color:rgba(232,121,249,.72)}html[data-soverix-theme="sunset"] #soverix-control-dock{border-color:rgba(251,146,60,.72)}
@@ -303,9 +304,13 @@ Error generating stack: `+u.message+`
 <script>
 (function(){
   var dock=document.getElementById('soverix-control-dock');if(!dock)return;
-  var ids=['soverix-home-back','soverix-profile-launcher','soverix-profile-panel','soverix-theme-launcher','soverix-theme-panel','soverix-sound-toggle','soverix-vibrate-toggle','soverix-emoji-launcher','soverix-emoji-pop','soverix-lb-launcher','soverix-lb-panel','earn-room-launcher','earn-room-panel','soverix-bot-assist','soverix-new-game','earn-room-ready','earn-room-leave'];
+  var ids=['soverix-emoji-launcher','soverix-emoji-pop','soverix-home-back','soverix-profile-launcher','soverix-profile-panel','soverix-theme-launcher','soverix-theme-panel','soverix-sound-toggle','soverix-vibrate-toggle','soverix-lb-launcher','soverix-lb-panel','earn-room-launcher','earn-room-panel','soverix-bot-assist','soverix-new-game','earn-room-ready','earn-room-leave'];
   function arrange(){ids.forEach(function(id){var el=document.getElementById(id);if(el&&el.parentElement!==dock)dock.appendChild(el)});}
-  arrange();setInterval(arrange,800);
+  arrange();
+  var emoji=document.getElementById('soverix-emoji-launcher'),popup=document.getElementById('soverix-emoji-pop');
+  if(emoji){emoji.textContent='😊 Emoji';emoji.setAttribute('aria-expanded','false');emoji.addEventListener('click',function(){setTimeout(function(){emoji.setAttribute('aria-expanded',String(!popup.hidden))},0)})}
+  if(popup)popup.setAttribute('aria-label','Emoji reactions');
+  setInterval(arrange,800);
 })();
 </script>
 <script>
