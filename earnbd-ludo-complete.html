@@ -88,6 +88,7 @@ Error generating stack: `+u.message+`
   })();
 </script>
 <button id="earn-room-leave" type="button" hidden style="position:fixed;left:16px;bottom:62px;z-index:252;padding:8px 10px;border:0;border-radius:9px;background:#ffffff14;color:#fff;font:800 11px system-ui;cursor:pointer">🚪 Leave room</button>
+<button id="earn-room-ready" type="button" hidden style="position:fixed;left:16px;bottom:104px;z-index:252;padding:8px 10px;border:0;border-radius:9px;background:#16834b;color:#fff;font:800 11px system-ui;cursor:pointer">✅ Ready</button>
 <script type="module">
   import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import{getAuth,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -112,6 +113,7 @@ Error generating stack: `+u.message+`
   const inviteRoom=new URLSearchParams(location.search).get('room');if(inviteRoom&&/^\d{6,8}$/.test(inviteRoom)){$("earn-room-code").value=inviteRoom;$("earn-room-panel").hidden=false;status("Invite room code loaded. Login to join.")}
   onAuthStateChanged(auth,u=>{user=u;$("earn-room-login").disabled=!!u;$("earn-room-register").disabled=!!u;if(u){status(inviteRoom?"Logged in. Joining the invite room…":"Logged in. Create or join a room.");if(inviteRoom&&!roomCode)setTimeout(()=>$("earn-room-join").click(),250)}});
   function networkState(){const offline=!navigator.onLine;$("earn-room-create").disabled=offline;$("earn-room-join").disabled=offline;$("earn-room-launcher").textContent=offline?'🌐 Offline':'🌐 Online Room';if(offline)status("Internet disconnected. Room actions are paused.");else if(user&&!roomCode)status("Online. Create or join a room.")}
-  window.addEventListener('online',networkState);window.addEventListener('offline',networkState);networkState();
+  window.addEventListener('online',networkState);window.addEventListener('offline',networkState);networkState();setInterval(()=>{$("earn-room-ready").hidden=!roomCode},500);
+  $("earn-room-ready").onclick=async()=>{if(!user||!roomCode)return;try{const p=ref(db,"rooms/"+roomCode+"/players/"+user.uid),snap=await get(p),ready=!!snap.val()?.ready;await update(p,{ready:!ready});$("earn-room-ready").textContent=ready?'✅ Ready':'⏳ Ready';status(!ready?"You are ready.":"Ready status removed.")}catch(e){error(e)}};
 </script>
 </html>
