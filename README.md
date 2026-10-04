@@ -24,3 +24,10 @@ The Firebase configuration is a browser configuration, not a service-account sec
 5. Test with two separate browsers or phones; each player must use a different account.
 
 The room supports up to four players, live member presence, turn rotation, emoji reactions, action history, host handoff, and disconnect cleanup. The original offline V11 board remains the gameplay surface.
+
+## GitHub Pages deployment
+
+1. Put `index.html`, `earnbd-ludo-complete.html`, and `soverix-29-card-v3-final-pro.html` in the same repository folder.
+2. In GitHub, open **Settings → Pages**, choose **Deploy from a branch**, then select the main branch and root folder.
+3. Open the generated Pages URL. The homepage buttons use the relative game filenames, so all three HTML files must stay together.
+4. Firebase `database.rules.json` is uploaded through Firebase Console → Realtime Database → Rules; it is not a GitHub Pages file.
