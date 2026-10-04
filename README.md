@@ -2,6 +2,8 @@
 
 `earnbd-ludo-complete.html` is a standalone responsive Ludo build for the EarnBD Work project.
 
+The games bundle also includes `soverix-29-card-v3-final-pro.html` with mobile controls, sound/vibration/effects preferences, Home navigation, and a safe New Game reset.
+
 Included:
 
 - 2-player and 4-player offline/pass-and-play matches
