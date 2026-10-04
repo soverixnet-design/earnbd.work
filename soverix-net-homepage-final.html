@@ -45,7 +45,7 @@ Error generating stack: `+u.message+`
 </script>
   <script>(function(){function m(a){var h=a.getAttribute("href");if(!h)return;try{var u=new URL(h,document.baseURI);if((u.protocol==="http:"||u.protocol==="https:")&&u.host!==location.host){a.target="_blank";a.rel="noopener noreferrer";}}catch(e){}}function s(){document.querySelectorAll("a[href]").forEach(m);}if(document.readyState!=="loading"){s();}else{document.addEventListener("DOMContentLoaded",s);}document.addEventListener("click",function(e){var a=e.target&&e.target.closest&&e.target.closest("a[href]");if(a){m(a);}},true);})();</script>
   <script>
-    document.addEventListener('click',function(e){var b=e.target&&e.target.closest&&e.target.closest('button');if(!b||b.textContent.trim()!=='Launch Fullscreen')return;var n=b,ludo=true,d=0;while(n&&d++<8){var t=n.innerText||'';if(t.indexOf('Soverix 29 Card')>-1){ludo=false;break}if(t.indexOf('Soverix Ludo V11')>-1){ludo=true;break}n=n.parentElement}window.location.href=ludo?'earnbd-ludo-complete.html':'soverix-29-card-v3-final-pro.html';},true);
+    window.__soverixSelectedGame='ludo';document.addEventListener('click',function(e){var t=(e.target&&e.target.closest&&e.target.closest('div'))||e.target,b=e.target&&e.target.closest&&e.target.closest('button');var label=t&&t.innerText||'';if(label.indexOf('Soverix 29 Card')>-1)window.__soverixSelectedGame='card';else if(label.indexOf('Soverix Ludo V11')>-1)window.__soverixSelectedGame='ludo';if(!b||b.textContent.trim()!=='Launch Fullscreen')return;window.location.href=window.__soverixSelectedGame==='card'?'soverix-29-card-v3-final-pro.html':'earnbd-ludo-complete.html';},true);
   </script>
 </body>
 </html>
