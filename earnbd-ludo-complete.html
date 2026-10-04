@@ -89,10 +89,13 @@ Error generating stack: `+u.message+`
              viewport center without changing the original board geometry. */
           if(el.parentElement){
             el.parentElement.style.transform='none';
-            el.parentElement.style.width='100%';
-            el.parentElement.style.height='100%';
+            /* The wrapper is only an anchor for the external die; it must
+               never become a transparent full-board overlay. */
+            el.parentElement.style.width='0px';
+            el.parentElement.style.height='0px';
             el.parentElement.style.left='0';
             el.parentElement.style.top='0';
+            el.parentElement.style.pointerEvents='none';
           }
         }
       });
@@ -289,6 +292,12 @@ Error generating stack: `+u.message+`
   #soverix-control-dock .soverix-profile-link{white-space:normal!important}
   @media(max-width:1100px){#soverix-control-dock{position:relative;left:auto;top:auto;width:min(560px,calc(100% - 24px));margin:14px auto 96px}}
   @media(max-width:640px){#soverix-control-dock{width:calc(100% - 24px);margin:12px auto calc(96px + env(safe-area-inset-bottom));padding:10px;border-radius:16px}.soverix-dock-heading{font-size:9px}#soverix-control-dock>button{min-height:38px!important;padding:8px 10px!important;font-size:10px!important}}
+  #root.soverix-playing-root{min-height:0!important;overflow:visible!important}
+  .soverix-outside-dice{filter:drop-shadow(0 12px 18px rgba(0,0,0,.52));isolation:isolate;outline:1px solid rgba(248,213,122,.48);outline-offset:8px;border-radius:16px}
+  .soverix-safe-mark{font-size:clamp(10px,1.5vw,15px)!important;line-height:1!important;filter:drop-shadow(0 1px 2px rgba(0,0,0,.42));opacity:.9}
+  .soverix-home-mark{font-size:clamp(17px,2.1vw,24px)!important;line-height:1!important;filter:drop-shadow(0 2px 2px rgba(0,0,0,.38))}
+  html[data-soverix-theme="ocean"] #soverix-control-dock{border-color:rgba(56,189,248,.68)}html[data-soverix-theme="emerald"] #soverix-control-dock{border-color:rgba(52,211,153,.68)}html[data-soverix-theme="neon"] #soverix-control-dock{border-color:rgba(232,121,249,.72)}html[data-soverix-theme="sunset"] #soverix-control-dock{border-color:rgba(251,146,60,.72)}
+  @media(max-width:640px){#soverix-control-dock{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:7px}.soverix-dock-heading{grid-column:1/-1}#soverix-control-dock>#soverix-theme-panel,#soverix-control-dock>.soverix-emoji-pop,#soverix-control-dock>#earn-room-panel,#soverix-control-dock>#soverix-lb-panel,#soverix-control-dock>#soverix-profile-panel{grid-column:1/-1}}
 </style>
 <aside id="soverix-control-dock" aria-label="Game controls"><div class="soverix-dock-heading">Game Controls</div></aside>
 <script>
@@ -297,6 +306,16 @@ Error generating stack: `+u.message+`
   var ids=['soverix-home-back','soverix-profile-launcher','soverix-profile-panel','soverix-theme-launcher','soverix-theme-panel','soverix-sound-toggle','soverix-vibrate-toggle','soverix-emoji-launcher','soverix-emoji-pop','soverix-lb-launcher','soverix-lb-panel','earn-room-launcher','earn-room-panel','soverix-bot-assist','soverix-new-game','earn-room-ready','earn-room-leave'];
   function arrange(){ids.forEach(function(id){var el=document.getElementById(id);if(el&&el.parentElement!==dock)dock.appendChild(el)});}
   arrange();setInterval(arrange,800);
+})();
+</script>
+<script>
+(function(){
+  function markBoard(){
+    var root=document.getElementById('root');if(!root)return;
+    var shell=root.querySelector('.soverix-board-shell');root.classList.toggle('soverix-playing-root',!!shell);
+    root.querySelectorAll('span').forEach(function(x){var t=(x.textContent||'').trim();if(t.indexOf('🛡')>-1)x.classList.add('soverix-safe-mark');if(t.indexOf('🏠')>-1)x.classList.add('soverix-home-mark')});
+  }
+  markBoard();setInterval(markBoard,700);
 })();
 </script>
 </html>
