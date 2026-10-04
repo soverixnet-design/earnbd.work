@@ -159,6 +159,10 @@ Error generating stack: `+u.message+`
 <script>
   (function(){var b=document.getElementById('soverix-new-game');if(!b)return;b.addEventListener('click',function(){var live=document.getElementById('earn-room-live');if(live&&!live.hidden){var s=document.getElementById('earn-room-status');if(s)s.textContent='Leave the online room before starting a new offline game.';return}if(window.confirm('Start a new offline game?'))location.reload()})})();
 </script>
+<script type="module">
+  import{getApps,getApp,initializeApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";import{getAuth,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";import{getDatabase,ref,get,set}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+  (function(){const c={apiKey:"AIzaSyCMwXWSbbFRTHcKx9nixhAg7hHvk-6yr-Y",authDomain:"earnbdwork.firebaseapp.com",databaseURL:"https://earnbdwork-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"earnbdwork",storageBucket:"earnbdwork.firebasestorage.app",messagingSenderId:"463458443517",appId:"1:463458443517:web:ed7e89c1ccb6eee3075e94"};const app=getApps().length?getApp():initializeApp(c),auth=getAuth(app),db=getDatabase(app),key="soverix-ludo-leaderboard-v1";onAuthStateChanged(auth,u=>{if(!u)return;const p=ref(db,"leaderboards/"+u.uid+"/ludo");get(p).then(s=>{let local={};try{local=JSON.parse(localStorage.getItem(key)||"{}")||{}}catch(e){}const remote=s.val()||{},merged=Object.assign({},remote,local);Object.keys(remote).forEach(k=>{if(local[k]&&local[k].points>remote[k].points)merged[k]=local[k]});try{localStorage.setItem(key,JSON.stringify(merged))}catch(e){}return set(p,merged)}).catch(()=>{});setInterval(()=>{try{const x=JSON.parse(localStorage.getItem(key)||"{}");if(navigator.onLine)set(p,x)}catch(e){}},5000)})})();
+</script>
 <script>
   (function(){function mark(){document.querySelectorAll('[class*="grid-cols-15"]').forEach(function(g){if(g.parentElement)g.parentElement.classList.add('soverix-board-shell')})}mark();setInterval(mark,500)})();
 </script>
