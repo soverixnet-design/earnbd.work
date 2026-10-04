@@ -76,5 +76,15 @@ Error generating stack: `+u.message+`
   <script>
     (function(){var p=document.getElementById('earn-home-lb-panel'),list=document.getElementById('earn-home-lb-list');function read(k,g){try{return Object.values(JSON.parse(localStorage.getItem(k)||'{}')).map(function(x){return Object.assign({game:g},x)})}catch(e){return[]}}function render(){var rows=read('soverix-ludo-leaderboard-v1','Ludo').concat(read('soverix-29-leaderboard-v1','29 Card')).sort(function(a,b){return b.points-a.points||b.wins-a.wins});list.innerHTML=rows.length?rows.map(function(x){return '<div class="earn-home-lb-row"><span><b>'+String(x.name).replace(/[<>]/g,'')+'</b><small style="display:block;color:#9aa6ba">'+x.game+' • '+x.wins+'W / '+x.losses+'L</small></span><strong style="color:#ffe08b">'+x.points+' pts</strong></div>'}).join(''):'<div class="earn-home-lb-empty">এখনও কোনো result নেই। গেমের ভেতর Leaderboard খুলে result save করুন।</div>'}document.getElementById('earn-home-lb').onclick=function(){p.hidden=!p.hidden;render()};document.getElementById('earn-home-lb-close').onclick=function(){p.hidden=true};render()})();
   </script>
+  <style>
+    /* Separate entry for the uploaded board; it does not touch the existing game card. */
+    #soverix-ultimate-entry{position:fixed;right:18px;bottom:18px;z-index:170;width:min(310px,calc(100vw - 36px));padding:14px 15px;border:1px solid rgba(250,204,21,.45);border-radius:18px;background:linear-gradient(145deg,rgba(23,21,40,.97),rgba(9,10,20,.97));color:#fff;box-shadow:0 18px 44px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.14);backdrop-filter:blur(14px);font-family:system-ui,sans-serif}
+    #soverix-ultimate-entry .ultimate-entry-title{font-size:14px;font-weight:950;color:#ffe08b;letter-spacing:.02em}
+    #soverix-ultimate-entry .ultimate-entry-copy{margin-top:3px;color:#b9c7da;font-size:11px;line-height:1.4}
+    #soverix-ultimate-entry a{display:block;margin-top:10px;padding:9px 11px;border-radius:10px;background:linear-gradient(135deg,#ffd76d,#d8972a);color:#111;text-align:center;text-decoration:none;font-size:11px;font-weight:950;box-shadow:0 4px 0 #8a5a00}
+    #soverix-ultimate-entry a:active{transform:translateY(2px);box-shadow:0 2px 0 #8a5a00}
+    @media(max-width:640px){#soverix-ultimate-entry{right:10px;bottom:10px;width:calc(100vw - 20px);padding:11px 12px}#soverix-ultimate-entry .ultimate-entry-copy{font-size:10px}}
+  </style>
+  <aside id="soverix-ultimate-entry" aria-label="New 3D Ludo board"><div class="ultimate-entry-title">✨ Soverix Ludo 3D Ultimate</div><div class="ultimate-entry-copy">আপনার দেওয়া নতুন বোর্ডটি আলাদা পেজে খুলুন—বর্তমান Ludo অপরিবর্তিত থাকবে।</div><a href="earnbd-ludo-3d-ultimate.html">Open New 3D Board →</a></aside>
 </body>
 </html>
