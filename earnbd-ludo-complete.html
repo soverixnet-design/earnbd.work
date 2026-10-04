@@ -121,4 +121,22 @@ Error generating stack: `+u.message+`
   $("earn-room-ready").onclick=async()=>{if(!user||!roomCode)return;try{const p=ref(db,"rooms/"+roomCode+"/players/"+user.uid),snap=await get(p),ready=!!snap.val()?.ready;await update(p,{ready:!ready});$("earn-room-ready").textContent=ready?'✅ Ready':'⏳ Ready';status(!ready?"You are ready.":"Ready status removed.")}catch(e){error(e)}};
   let lastReplayedDice='',lastReplayedToken='';setInterval(()=>{if(!user||!roomCode)return;get(ref(db,"rooms/"+roomCode+"/game/lastAction")).then(s=>{const a=s.val();if(!a||a.uid===user.uid)return;if(a.type==='diceRoll'&&a.id!==lastReplayedDice){lastReplayedDice=a.id;const die=document.querySelector('div[style*="perspective"]');if(die){const key=Object.keys(die).find(k=>k.indexOf('__reactProps$')===0),props=key&&die[key];if(props&&typeof props.onClick==='function')props.onClick({preventDefault(){},stopPropagation(){}})}}if(a.type==='tokenMove'&&a.id!==lastReplayedToken&&a.left&&a.top){lastReplayedToken=a.id;const token=[...document.querySelectorAll('[style*="left"][style*="top"]')].find(el=>el.style.left===a.left&&el.style.top===a.top);if(token){const key=Object.keys(token).find(k=>k.indexOf('__reactProps$')===0),props=key&&token[key];if(props&&typeof props.onClick==='function')props.onClick({preventDefault(){},stopPropagation(){}})}}}).catch(()=>{})},1200);
 </script>
+<style>
+  #soverix-bot-assist{position:fixed;right:16px;bottom:16px;z-index:250;padding:10px 13px;border:1px solid #ffffff33;border-radius:999px;background:#0a0a14dd;color:#fff;font:800 11px system-ui;box-shadow:0 8px 24px #0007;cursor:pointer}
+  #soverix-bot-assist.active{background:linear-gradient(135deg,#8b5cf6,#2563eb);border-color:#c4b5fd}
+  @media (max-width:640px){#soverix-bot-assist{right:12px;bottom:118px}}
+</style>
+<button id="soverix-bot-assist" type="button" aria-pressed="false">🤖 Bot Assist</button>
+<script>
+  (function(){
+    var btn=document.getElementById('soverix-bot-assist'),enabled=false,busy=false,lastTurn='';
+    function onlineRoom(){var live=document.getElementById('earn-room-live');return live&&!live.hidden}
+    function reactClick(el){if(!el)return false;var k=Object.keys(el).find(function(x){return x.indexOf('__reactProps$')===0}),p=k&&el[k];if(p&&typeof p.onClick==='function'){p.onClick({preventDefault:function(){},stopPropagation:function(){}});return true}return false}
+    function dice(){return document.querySelector('.soverix-outside-dice')||document.querySelector('div[style*="perspective"]')}
+    function token(){var xs=[].slice.call(document.querySelectorAll('[class*="pointer-events-auto"][class*="cursor-pointer"]'));return xs.find(function(x){return x.offsetWidth>0&&x.offsetHeight>0})}
+    function step(){if(!enabled||busy||onlineRoom())return;var d=dice();if(!d)return;var turn=document.querySelector('[class*="animate-bounce"]');var sig=(turn&&turn.parentElement&&turn.parentElement.innerText)||'';if(sig===lastTurn)return;busy=true;lastTurn=sig;if(reactClick(d)){setTimeout(function(){reactClick(token());busy=false},950)}else busy=false}
+    btn.addEventListener('click',function(){enabled=!enabled;btn.classList.toggle('active',enabled);btn.setAttribute('aria-pressed',String(enabled));btn.textContent=enabled?'🤖 Bot Assist on':'🤖 Bot Assist';if(!enabled){busy=false;lastTurn=''}});
+    setInterval(step,900);
+  })();
+</script>
 </html>
