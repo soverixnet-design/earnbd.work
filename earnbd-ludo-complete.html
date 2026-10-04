@@ -151,7 +151,7 @@ Error generating stack: `+u.message+`
     #soverix-emoji-launcher{right:12px!important;bottom:calc(12px + env(safe-area-inset-bottom))!important}
     .soverix-emoji-pop{right:12px!important;bottom:calc(60px + env(safe-area-inset-bottom))!important}
     #earn-room-launcher{bottom:calc(16px + env(safe-area-inset-bottom))!important}
-    .soverix-outside-dice{bottom:calc(74px + env(safe-area-inset-bottom))!important}
+    .soverix-outside-dice{bottom:auto!important}
   }
 </style>
 <button id="soverix-bot-assist" type="button" aria-pressed="false">🤖 Bot Assist</button>
@@ -209,6 +209,31 @@ Error generating stack: `+u.message+`
     $('soverix-lb-launcher').onclick=function(){panel.hidden=!panel.hidden;render()};panel.querySelector('.soverix-lb-close').onclick=function(){panel.hidden=true};
     $('soverix-lb-save').onclick=function(){var name=$('soverix-lb-name').value.trim()||'Player',result=$('soverix-lb-result').value,points=Math.max(0,Number($('soverix-lb-points').value)||0);window.__soverixRecordLeaderboard(name,result,points);$('soverix-lb-name').value=''};
     $('soverix-lb-clear').onclick=function(){if(confirm('লিডারবোর্ডের সব রেকর্ড মুছবেন?')){data={};save();render()}};render();var seen='';setInterval(function(){var txt=document.body.innerText||'',m=txt.match(/([A-Za-z\u0980-\u09FF ]{2,28})\s+(?:wins|জিতেছে|জিতল)!?/i);if(!m){seen='';return}var sig=m[0]+'|'+txt.slice(-180);if(sig===seen)return;seen=sig;var name=m[1].trim().replace(/^(Team|Game)$/i,'Winner')||'Winner';window.__soverixRecordLeaderboard(name,'win',10)},900);
+  })();
+</script>
+<style>
+  /* Explicit non-overlap geometry for the original board and its controls. */
+  #root .soverix-board-shell{position:relative!important;display:block!important;flex:0 0 auto!important;box-sizing:border-box!important;margin-inline:auto!important}
+  #root .soverix-board-stage{width:100%!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;box-sizing:border-box!important}
+  .soverix-player-strip{display:flex!important;flex-wrap:wrap!important;align-items:center!important;justify-content:center!important;gap:8px!important;width:min(100%,720px)!important;min-height:34px!important;margin:0 auto 8px!important;padding:0 8px!important;box-sizing:border-box!important;position:relative!important;z-index:20!important}
+  #soverix-home-back{left:max(12px,env(safe-area-inset-left))!important;top:max(12px,env(safe-area-inset-top))!important;white-space:nowrap!important}
+  #soverix-theme-launcher{right:max(12px,env(safe-area-inset-right))!important;top:max(12px,env(safe-area-inset-top))!important;white-space:nowrap!important}
+  @media(max-width:640px){.soverix-player-strip{gap:5px!important;padding:0 4px!important}.soverix-player-strip>*{flex:0 1 auto!important}.soverix-outside-dice{top:-78px!important;bottom:auto!important}}
+</style>
+<script>
+  (function(){
+    function markLayout(){
+      var grid=document.querySelector('[class*="grid-cols-15"]');
+      if(!grid||!grid.parentElement)return;
+      var shell=grid.parentElement,stage=shell.parentElement;
+      shell.classList.add('soverix-board-shell');
+      if(stage)stage.classList.add('soverix-board-stage');
+      document.querySelectorAll('#root div').forEach(function(el){
+        var t=(el.innerText||'').replace(/\s+/g,' ').trim();
+        if(t.length<80&&/RED/.test(t)&&/GREEN/.test(t)&&/YELLOW/.test(t)&&/BLUE/.test(t)&&el.children.length>=4&&el.children.length<=8)el.classList.add('soverix-player-strip');
+      });
+    }
+    markLayout();setInterval(markLayout,500);
   })();
 </script>
 </html>
