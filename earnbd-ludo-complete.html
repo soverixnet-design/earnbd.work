@@ -64,7 +64,7 @@ Error generating stack: `+u.message+`
       function boardWatch(){var g=board();if(!g)return;var sig=g.textContent+'|'+g.children.length;if(lastBoardSignature&&sig!==lastBoardSignature){moveSound();var toast=(document.body.innerText||'').toLowerCase();if(/captur|cut|কাটা/.test(toast))cutSound();if(/wins|winner|জিত/.test(toast))winSound()}lastBoardSignature=sig}setInterval(boardWatch,500);
     })();
   </script>
-<script type="module" src="admin-runtime.js?v=admin-v1"></script><script type="module" src="presence-tracker.js?v=activity-v1"></script>
+<script type="module" src="admin-runtime.js?v=admin-v2"></script><script type="module" src="presence-tracker.js?v=activity-v1"></script>
 </body>
 <style>
   /* Keep the original 3D die outside the board without rebuilding the board. */
