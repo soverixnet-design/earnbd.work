@@ -38,3 +38,23 @@ The room supports up to four players, live member presence, turn rotation, emoji
 2. In GitHub, open **Settings → Pages**, choose **Deploy from a branch**, then select the main branch and root folder.
 3. Open the generated Pages URL. The homepage buttons use the relative game filenames, so all three HTML files must stay together.
 4. Firebase `database.rules.json` is uploaded through Firebase Console → Realtime Database → Rules; it is not a GitHub Pages file.
+
+## Admin Control Center
+
+`admin-panel.html` is the protected control center for the public hub. It supports:
+
+- Homepage brand, hero text, notices, maintenance mode and visibility controls.
+- Game catalog management: publish/hide, title, subtitle, route, icon, button label, accent color, type and sort order.
+- Global 3D surface theme values for the homepage and game shells.
+- Firebase user activity, presence, rooms, virtual coins/XP, roles and block status.
+- Admin audit history plus JSON export/import backup for settings and games.
+
+One-time Firebase setup:
+
+1. Deploy the updated `database.rules.json` in Realtime Database → Rules.
+2. Create or sign in with the intended admin Firebase account.
+3. Open `admin-panel.html` once. Copy the displayed Firebase UID.
+4. In Realtime Database, create `admins/<UID>` with the boolean value `true`.
+5. Sign in again; the dashboard will unlock.
+
+The admin page never stores an admin password in the repository. The original Ludo route and board remain separate; the panel changes public settings and catalog data without rewriting the original board internals.
