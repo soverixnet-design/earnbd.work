@@ -113,7 +113,8 @@ Error generating stack: `+o.message+`
       });
     }
     brandGame();
-    new MutationObserver(brandGame).observe(document.body,{childList:true,subtree:true});
+    new MutationObserver(brandGame).observe(document.body,{childList:true,subtree:true,characterData:true});
+    setInterval(brandGame,800);
   })();
 </script>
 </html>
