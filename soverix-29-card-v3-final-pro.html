@@ -107,7 +107,8 @@ Error generating stack: `+o.message+`
     function brandGame(){
       document.title='SHAKIL m game · ২৯ কার্ড';
       document.querySelectorAll('body *').forEach(function(el){
-        if(el.children.length||!el.textContent)return;
+        if(!el.textContent)return;
+        if(el.children.length){el.childNodes.forEach(function(n){if(n.nodeType===3&&/SOVERIX|Soverix/.test(n.nodeValue))n.nodeValue=n.nodeValue.replace(/SOVERIX|Soverix/g,'SHAKIL m game')});return}
         if(/SOVERIX|Soverix/.test(el.textContent))el.textContent=el.textContent.replace(/SOVERIX|Soverix/g,'SHAKIL m game');
       });
     }
