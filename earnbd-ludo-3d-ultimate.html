@@ -73,6 +73,6 @@ Error generating stack: `+i.message+`
       onAuthStateChanged(auth,user=>{const name=(user?.displayName||user?.email?.split("@")[0]||"").trim().slice(0,12),shown=name||"Guest";window.__soverixUltimateUserName=name||"You";if(nameEl)nameEl.textContent=`👤 ${shown}`;window.dispatchEvent(new CustomEvent("soverix:user",{detail:{name:name||"You"}}));});
     }catch(e){/* Firebase is optional; guest play remains available. */}
   </script>
-<script type="module" src="admin-runtime.js?v=admin-v2"></script><script type="module" src="presence-tracker.js?v=activity-v1"></script>
+<script type="module" src="admin-runtime.js?v=admin-v3"></script><script type="module" src="presence-tracker.js?v=activity-v1"></script>
 </body>
 </html>
