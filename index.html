@@ -63,7 +63,7 @@
     <div class="hero-copy">
       <span class="eyebrow" data-live-label><i></i> LIVE • SHAKIL m game</span>
       <h1><span class="first">SHAKIL</span><span class="second">m game</span></h1>
-      <p data-hero-title>Shakil VIP Ludo King — নিজের মতো থিম বেছে নিয়ে বন্ধুদের সঙ্গে লুডো খেলুন এবং স্কোর তৈরি করুন।</p>
+      <p data-hero-title>Shakil VIP Ludo King-এর সঙ্গে খেলুন, আর নিচে থাকা অন্যান্য গেমগুলোও উপভোগ করুন।</p>
       <div class="hero-stats"><span class="stat"><span class="dot-live"></span><strong id="hero-online">লগইন করে অনলাইন দেখুন</strong></span><span class="stat">🎮 <strong id="hero-game-count">গেম লোড হচ্ছে…</strong></span><span class="stat">🪙 ভার্চুয়াল রিওয়ার্ড</span></div>
       <div class="hero-ctas"><a class="cta" href="#games">🎮 গেম খেলুন</a><button class="cta alt" id="hero-leaderboard" type="button">🏆 লিডারবোর্ড</button></div>
     </div>
@@ -87,7 +87,7 @@
     </section>
 
     <section class="section" id="leaderboard">
-      <div class="section-head"><div><h2>🏆 লিডারবোর্ড</h2><p>Shakil VIP Ludo King-এর সিঙ্ক করা স্কোর।</p></div><span class="note" id="leaderboard-note">লগইন করে সিঙ্কড ফলাফল দেখুন</span></div>
+      <div class="section-head"><div><h2>🏆 লিডারবোর্ড</h2><p>Shakil VIP Ludo King ও অন্যান্য গেমের সিঙ্ক করা স্কোর।</p></div><span class="note" id="leaderboard-note">লগইন করে সিঙ্কড ফলাফল দেখুন</span></div>
       <div class="board-panel"><div class="leaderboard-list" id="leaderboard-list"><div class="empty">লিডারবোর্ড লোড হচ্ছে…</div></div></div>
     </section>
   </main>
@@ -103,15 +103,19 @@
     const firebaseConfig={apiKey:"AIzaSyCMwXWSbbFRTHcKx9nixhAg7hHvk-6yr-Y",authDomain:"earnbdwork.firebaseapp.com",databaseURL:"https://earnbdwork-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"earnbdwork",storageBucket:"earnbdwork.firebasestorage.app",messagingSenderId:"463458443517",appId:"1:463458443517:web:ed7e89c1ccb6eee3075e94"};
     const app=getApps().length?getApp():initializeApp(firebaseConfig),auth=getAuth(app),db=getDatabase(app),$=id=>document.getElementById(id),esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
     const avatarChoices=["😎","👑","🦁","🐯","🚀","🔥","⚡","🦅","🐼","🐸","🦄","🎯"];
-    // Only the uploaded Shakil VIP Ludo King is published on the homepage.
-    // Older Firebase game records are intentionally ignored so they cannot
-    // bring the removed boards/cards back into the public game list.
-    const allowedGameIds=new Set(["shakilVip"]);
+    // Publish one Ludo board plus all of the other game cards.  Older Ludo
+    // duplicates stay excluded even if their Firebase records still exist.
+    const allowedGameIds=new Set(["shakilVip","card29","carrom","arcade","teenpatti","chess"]);
     const baseGames=[
-      {id:"shakilVip",name:"Shakil VIP Ludo King",icon:"👑",type:"লুডু",players:"২-৪ জন",route:"earnbd-ludo-complete.html",subtitle:"অফলাইন, লোকাল বন্ধু এবং VIP Ludo board",a:"#1e73e8",b:"#f0a500",online:false,sort:1}
+      {id:"shakilVip",name:"Shakil VIP Ludo King",icon:"👑",type:"লুডু",players:"২-৪ জন",route:"earnbd-ludo-complete.html",subtitle:"অফলাইন, লোকাল বন্ধু এবং VIP Ludo board",a:"#1e73e8",b:"#f0a500",online:false,sort:1},
+      {id:"card29",name:"২৯ কার্ড",icon:"🃏",type:"কার্ড",players:"৪ জন",route:"soverix-29-card-v3-final-pro.html?v=shakil-m-game",subtitle:"আসল নিয়ম, smart bot এবং score",a:"#a855f7",b:"#6d28d9",online:false,sort:2},
+      {id:"carrom",name:"ক্যারাম",icon:"🎯",type:"বোর্ড",players:"২-৪ জন",route:"",subtitle:"বোর্ড রেডি হচ্ছে",a:"#19b8a8",b:"#2b7fff",online:false,sort:3},
+      {id:"arcade",name:"খেলাঘর",icon:"🎮",type:"অ্যাকশন",players:"৪টি গেম",route:"",subtitle:"এক পেজে অনেক মিনি-গেম",a:"#8a4dff",b:"#ff4dc4",online:false,sort:4},
+      {id:"teenpatti",name:"তিন পাত্তি",icon:"🃏",type:"কার্ড",players:"২-৬ জন",route:"",subtitle:"শীঘ্রই আসছে",a:"#c2185b",b:"#6a1b9a",online:false,sort:5},
+      {id:"chess",name:"দাবা",icon:"♟️",type:"বোর্ড",players:"২ জন",route:"",subtitle:"শীঘ্রই আসছে",a:"#5468a6",b:"#1e2a4a",online:false,sort:6}
     ];
     let games=baseGames.slice(),filter="all",currentUser=null,currentProfile=null,leaderboardUnsub=null,presenceUnsub=null,selectedAvatar=avatarChoices[0];
-    const filters=[["all","সব"],["লুডু","লুডু"]];
+    const filters=[["all","সব"],["live","চালু"],["লুডু","লুডু"],["বোর্ড","বোর্ড"],["কার্ড","কার্ড"],["অ্যাকশন","অ্যাকশন"]];
     $("avatar-picker").innerHTML=avatarChoices.map((a,i)=>`<button type="button" data-avatar="${a}" aria-pressed="${i===0}">${a}</button>`).join("");
     $("avatar-picker").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{selectedAvatar=b.dataset.avatar;$("avatar-picker").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)))}));
     $("game-filters").innerHTML=filters.map(([id,label])=>`<button class="chip" type="button" data-filter="${id}" aria-pressed="${id==="all"}">${label}</button>`).join("");
@@ -131,7 +135,7 @@
     async function register(){const name=$("auth-name").value.trim()||"Player",email=$("auth-email").value.trim(),password=$("auth-password").value;if(!email||password.length<6){authStatus("সঠিক ইমেইল ও কমপক্ষে ৬ অক্ষরের পাসওয়ার্ড দিন।");return}authStatus("অ্যাকাউন্ট তৈরি হচ্ছে…");try{const cred=await createUserWithEmailAndPassword(auth,email,password);await updateProfile(cred.user,{displayName:name});await ensureProfile(cred.user,{name,avatar:selectedAvatar});authStatus("অ্যাকাউন্ট তৈরি হয়েছে।")}catch(e){authStatus(String(e.code||"Registration failed").replace("auth/","").replaceAll("-"," "))}}
     async function login(){const email=$("auth-email").value.trim(),password=$("auth-password").value;if(!email||!password){authStatus("ইমেইল ও পাসওয়ার্ড দিন।");return}authStatus("লগইন হচ্ছে…");try{await signInWithEmailAndPassword(auth,email,password);authStatus("লগইন সফল হয়েছে।")}catch(e){authStatus(String(e.code||"Login failed").replace("auth/","").replaceAll("-"," "))}}
     $("register").onclick=register;$("login").onclick=login;$("google").onclick=async()=>{authStatus("Google login হচ্ছে…");try{await signInWithPopup(auth,new GoogleAuthProvider());authStatus("Google login সফল হয়েছে।")}catch(e){authStatus(String(e.code||"Google login failed").replace("auth/","").replaceAll("-"," "))}};$("logout").onclick=()=>signOut(auth).then(closeAuth);
-    function localScores(){const out=[];["soverix-ludo-leaderboard-v1"].forEach(key=>{try{const x=JSON.parse(localStorage.getItem(key)||"{}");Object.values(x||{}).forEach(v=>out.push({...v,source:"Shakil VIP Ludo King"}))}catch(e){}});return out}
+    function localScores(){const out=[];["soverix-ludo-leaderboard-v1","soverix-29-leaderboard-v1"].forEach(key=>{try{const x=JSON.parse(localStorage.getItem(key)||"{}");Object.values(x||{}).forEach(v=>out.push({...v,source:key.includes("29")?"২৯ কার্ড":"Shakil VIP Ludo King"}))}catch(e){}});return out}
     function flattenScores(raw){const rows={};const add=(name,record,source)=>{name=String(name||"Player");const key=name.toLowerCase();if(!rows[key])rows[key]={name,wins:0,losses:0,games:0,points:0,sources:new Set()};const r=rows[key];r.wins+=Number(record.wins)||0;r.losses+=Number(record.losses)||0;r.games+=Number(record.games)||0;r.points+=Number(record.points)||0;r.sources.add(source)};Object.entries(raw||{}).forEach(([uid,entry])=>{Object.entries(entry||{}).forEach(([game,records])=>{if(records&&typeof records==="object"&&("points" in records||"wins" in records||"losses" in records)){add(records.name||uid,records,game)}else Object.values(records||{}).forEach(record=>{if(record&&typeof record==="object")add(record.name||uid,record,game)})})});localScores().forEach(r=>add(r.name,r,r.source));return Object.values(rows).sort((a,b)=>b.points-a.points||b.wins-a.wins||b.games-a.games).slice(0,20)}
     function renderLeaderboard(raw={}){const list=$("leaderboard-list"),rows=flattenScores(raw);if(!rows.length){list.innerHTML=`<div class="empty">এখনও কোনো স্কোর নেই। গেম খেলুন, ফলাফল সেভ করুন।</div>`;return}list.innerHTML=rows.map((r,i)=>`<div class="leader-row"><span class="rank">${i<3?["🥇","🥈","🥉"][i]:i+1}</span><span class="leader-name">${esc(r.name)}<small>${esc([...r.sources].join(" · "))}</small></span><span class="leader-stat">${r.wins}W / ${r.losses}L</span><span class="leader-stat">${r.points} pts</span></div>`).join("");$("leaderboard-note").textContent=currentUser?"Firebase + local ফলাফল":"এই ডিভাইসের ফলাফল"}
     function watchLeaderboard(){if(leaderboardUnsub)leaderboardUnsub();if(!currentUser){renderLeaderboard({});return}leaderboardUnsub=onValue(ref(db,"leaderboards"),s=>renderLeaderboard(s.val()||{}),()=>renderLeaderboard({}))}
