@@ -73,6 +73,21 @@ Error generating stack: `+i.message+`
       onAuthStateChanged(auth,user=>{const name=(user?.displayName||user?.email?.split("@")[0]||"").trim().slice(0,12),shown=name||"Guest";window.__soverixUltimateUserName=name||"You";if(nameEl)nameEl.textContent=`👤 ${shown}`;window.dispatchEvent(new CustomEvent("soverix:user",{detail:{name:name||"You"}}));});
     }catch(e){/* Firebase is optional; guest play remains available. */}
   </script>
-<script type="module" src="admin-runtime.js?v=admin-v3"></script><script type="module" src="presence-tracker.js?v=activity-v1"></script>
+<script type="module" src="admin-runtime.js?v=admin-v4"></script><script type="module" src="presence-tracker.js?v=activity-v2"></script>
+<script>
+  (function(){
+    function brandGame(){
+      document.title='SHAKIL m game · Ludo 3D Ultimate';
+      document.querySelectorAll('body *').forEach(function(el){
+        if(!el.textContent)return;
+        if(el.children.length){el.childNodes.forEach(function(n){if(n.nodeType===3&&/SOVERIX|Soverix/.test(n.nodeValue))n.nodeValue=n.nodeValue.replace(/SOVERIX|Soverix/g,'SHAKIL m game')});return}
+        if(/SOVERIX|Soverix/.test(el.textContent))el.textContent=el.textContent.replace(/SOVERIX|Soverix/g,'SHAKIL m game');
+      });
+    }
+    brandGame();
+    new MutationObserver(brandGame).observe(document.body,{childList:true,subtree:true,characterData:true});
+    setInterval(brandGame,800);
+  })();
+</script>
 </body>
 </html>
