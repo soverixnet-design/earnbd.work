@@ -292,7 +292,8 @@ async function leaveCurrent(show = true) {
 
 function send(action = {}) {
   if (!roomCode || !currentUser || roomData?.status !== "playing") return Promise.resolve(false);
-  return set(push(gameEventsRef(roomCode)), { ...action, uid: currentUser.uid, at: serverTimestamp() }).then(() => true).catch(() => false);
+  const payload = { ...action, t: String(action.t || action.type || "action"), uid: currentUser.uid, at: serverTimestamp() };
+  return set(push(gameEventsRef(roomCode)), payload).then(() => true).catch(() => false);
 }
 
 sizeEl.onchange = () => { desiredPlayers = Number(sizeEl.value) === 4 ? 4 : 2; };
