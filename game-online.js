@@ -190,6 +190,7 @@ function attachRoom(code) {
   stopListeners();
   roomCode = next; roomData = null; bridgeStarted = false; seenEvents = new Set();
   codeEl.value = roomCode;
+  window.smgVoiceSetRoom?.(roomCode);
   roomUnsub = onValue(gameRoomRef(roomCode), snap => { const data = snap.val(); if (!data) { setStatus("রুমটি আর নেই।", "error"); return; } renderRoom(data); maybeStart(data); }, () => setStatus("রুম ডেটা পড়া যাচ্ছে না। Firebase Rules deploy করুন।", "error"));
   eventsUnsub = onChildAdded(gameEventsRef(roomCode), snap => { if (seenEvents.has(snap.key)) return; seenEvents.add(snap.key); const action = snap.val(); if (!action || action.uid === currentUser?.uid) return; dispatch("smg-game-online-action", { action, uid: action.uid, room: roomCode }); });
   memberDisconnect = onDisconnect(ref(db, `onlineRooms/${gameKey}/${roomCode}/players/${currentUser.uid}`));
@@ -286,6 +287,7 @@ async function leaveCurrent(show = true) {
   }
   if (bridgeStarted) dispatch("smg-game-online-stop", { code: oldCode });
   roomCode = ""; roomData = null; bridgeStarted = false; seenEvents = new Set(); startBtn.dataset.manual = "";
+  window.smgVoiceSetRoom?.("");
   shareBtn.hidden = true; roomEl.hidden = true; quickBtn.disabled = false; createBtn.disabled = false; joinBtn.disabled = false; sizeEl.disabled = false;
   if (show) setStatus("অনলাইন মেনু প্রস্তুত।", "warn");
 }
