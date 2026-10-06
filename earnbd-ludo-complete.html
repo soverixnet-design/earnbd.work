@@ -94,6 +94,8 @@ if(!AVL.includes(PR.a))PR.a='😎';PR.n=cn(PR.n)||'আপনি';PR.id=String(PR
 const savePR=()=>{try{localStorage.setItem('ludoP',JSON.stringify(PR))}catch(e){}};
 let LB=[],SRCH=0,mmT=0,nT=0;const setS=s=>{try{RM&&RM.presence({s})}catch(e){}};
 let NM=['কম্পিউটার ১','কম্পিউটার ২','কম্পিউটার ৩','আপনি'],M='ai',OL=null,RM=null;
+// The shared voice module reads the active online room without changing the board.
+window.smgVoiceGetRoom=()=>OL&&OL.code?String(OL.code):'';
 const hum=pl=>M==='ai'?pl===3:1,mine=pl=>M==='ai'?pl===3:M==='local'?1:OL.seat===pl,send=d=>OL&&OL.room.emit('act',d).catch(()=>{});
 let AV=[],ID=[];
 function setNames(a,av,id){NM=a;AV=av||[];ID=id||[];cards.forEach((d,i)=>{d.querySelector('.dot').textContent=AV[i]||'🙂';const n=d.querySelector('.nm');n.textContent=NM[i];if(ID[i]){const t=document.createElement('small');t.textContent='#'+ID[i];n.append(t)}});drawBoard()}
@@ -221,4 +223,4 @@ $('#fm').onclick=()=>{if(!RM)return;SRCH=SRCH?0:1;setS(SRCH?'f':'m');$('#fm').te
 RM.presence({n:PR.n,a:PR.a,i:PR.id,s:'m'});let first=1;
 RM.onPeers(c=>{LB=c.peers.filter(p=>p.kind==='viewer');drawLB();if(!first){c.joined.forEach(p=>{if(!p.isMe)note('🔔 '+avOf(p)+' '+nmOf(p)+' অনলাইনে এসেছে')});c.updated.forEach(p=>{if(!p.isMe&&p.presence.s==='f')note('🔔 '+nmOf(p)+' খেলার জন্য খুঁজছে — আপনিও খুঁজুন!')})}first=0;mm()});
 RM.on('mm',m=>{if(m.isMe||!SRCH||OL)return;const d=m.data||{},me=LB.find(p=>p.isMe&&p.sameTab);if(me&&Array.isArray(d.t)&&d.t.includes(me.peer)&&/^\d{4}$/.test(d.c)){clearTimeout(mmT);mmT=0;enter(d.c,0)}})})();
-</script></body></html>
+</script><script type="module" src="voice-chat.js?game=ludo&v=voice1"></script></body></html>

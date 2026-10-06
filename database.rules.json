@@ -83,6 +83,27 @@
         ".write": "auth != null && (auth.uid == $uid || root.child('admins').child(auth.uid).val() == true)"
       }
     },
+    "voiceRooms": {
+      "$roomId": {
+        ".read": "auth != null",
+        "members": {
+          ".read": "auth != null",
+          "$uid": {
+            ".write": "auth != null && auth.uid == $uid && (newData.val() == null || newData.child('uid').val() == $uid)",
+            ".validate": "newData.val() == null || (newData.hasChildren(['uid','name']) && newData.child('uid').val() == $uid && newData.child('name').isString())"
+          }
+        },
+        "signals": {
+          "$targetUid": {
+            ".read": "auth != null && auth.uid == $targetUid",
+            "$signalId": {
+              ".write": "auth != null && ((newData.val() == null && auth.uid == $targetUid) || newData.child('from').val() == auth.uid)",
+              ".validate": "newData.val() == null || (newData.hasChildren(['from','type']) && newData.child('from').isString() && newData.child('type').isString())"
+            }
+          }
+        }
+      }
+    },
     "adminAudit": {
       ".read": "auth != null && root.child('admins').child(auth.uid).val() == true",
       "$id": {
