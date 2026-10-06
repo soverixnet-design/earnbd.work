@@ -164,7 +164,7 @@ if($('smg-chess-mode-toggle'))$('smg-chess-mode-toggle').onclick=()=>setMatchMod
 function sync(){ui()}
 /* ---------- 3D ---------- */
 const cv=$('cv'),prm=$('pr');
-const R=new THREE.WebGLRenderer({antialias:true,alpha:true});R.shadowMap.enabled=true;cv.appendChild(R.domElement);
+let webgl=true,R;try{R=new THREE.WebGLRenderer({antialias:true,alpha:true})}catch(e){webgl=false;const fallbackCanvas=document.createElement('canvas');fallbackCanvas.setAttribute('aria-label','2D দাবা বোর্ড');fallbackCanvas.style.width='100%';fallbackCanvas.style.height='100%';R={domElement:fallbackCanvas,shadowMap:{enabled:false},setSize(w,h){const d=window.devicePixelRatio||1;this.domElement.width=Math.max(1,Math.floor(w*d));this.domElement.height=Math.max(1,Math.floor(h*d))},render(){}}}R.shadowMap.enabled=webgl;cv.appendChild(R.domElement);
 const S=new THREE.Scene(),C=new THREE.PerspectiveCamera(40,1,.1,100);
 S.add(new THREE.HemisphereLight(0xffffff,0x555566,.75));
 const DL=new THREE.DirectionalLight(0xffffff,.85);DL.position.set(5,11,7);DL.castShadow=true;DL.shadow.mapSize.set(1024,1024);
@@ -222,7 +222,8 @@ function draw(){
  MG.clear();mv.forEach(i=>{const cap=b[i]!==' '||(b[sel].toLowerCase()==='p'&&i===ep);
   const m=cap?new THREE.Mesh(new THREE.TorusGeometry(.4,.05,8,32),new THREE.MeshBasicMaterial({color:'#e23b3b'})):new THREE.Mesh(new THREE.CylinderGeometry(.14,.14,.02,20),new THREE.MeshBasicMaterial({color:'#2fcf7a'}));
   if(cap)m.rotation.x=Math.PI/2;m.position.set((i&7)-3.5,.03,(i>>3)-3.5);MG.add(m)});
- $('st').textContent=msg;trays();maybeAI()}
+ $('st').textContent=msg;trays();if(!webgl)drawFallback();maybeAI()}
+function drawFallback(){const c=R.domElement,x=c.getContext('2d');if(!x)return;const d=window.devicePixelRatio||1,w=c.width/d,h=c.height/d,s=Math.min(w,h),cell=s/8;x.setTransform(d,0,0,d,0,0);x.clearRect(0,0,w,h);for(let i=0;i<64;i++){const r=i>>3,f=i&7,light=(r+f)%2===0;x.fillStyle=light?P.cl:P.cd;x.fillRect(f*cell,r*cell,cell,cell);if(last.includes(i)){x.fillStyle='#f2d04b88';x.fillRect(f*cell,r*cell,cell,cell)}if(i===sel){x.fillStyle='#e8c94aaa';x.fillRect(f*cell,r*cell,cell,cell)}if(i===ksq){x.fillStyle='#d9453bcc';x.fillRect(f*cell,r*cell,cell,cell)}}x.strokeStyle='#0008';x.lineWidth=2;x.strokeRect(1,1,s-2,s-2);const gl={p:'♟',n:'♞',b:'♝',r:'♜',q:'♛',k:'♚'};x.textAlign='center';x.textBaseline='middle';x.font=`${cell*.78}px Georgia`;for(let i=0;i<64;i++){const p=b[i];if(p===' ')continue;x.fillStyle=p===p.toUpperCase()?'#fff':'#171717';x.strokeStyle=p===p.toUpperCase()?'#111':'#fff';x.lineWidth=3;x.strokeText(gl[p.toLowerCase()],(i&7)*cell+cell/2,(i>>3)*cell+cell/2);x.fillText(gl[p.toLowerCase()],(i&7)*cell+cell/2,(i>>3)*cell+cell/2)}if(mv.length){x.fillStyle='#2fcf7a';for(const i of mv){x.beginPath();x.arc((i&7)*cell+cell/2,(i>>3)*cell+cell/2,cell*.1,0,Math.PI*2);x.fill()}}}
 const GR=(()=>{const c=document.createElement('canvas');c.width=c.height=512;const x=c.getContext('2d');
  for(let i=0;i<170;i++){const y=Math.random()*512;x.strokeStyle=Math.random()<.6?'#000':'#ffb070';x.globalAlpha=.03+Math.random()*.09;x.lineWidth=1+Math.random()*4;x.beginPath();x.moveTo(0,y);for(let t=0;t<=512;t+=16)x.lineTo(t,y+Math.sin(t/512*12.566+i)*6);x.stroke()}return c.toDataURL()})();
 function skin(){const f=BT[P.bt][3],g=BT[P.bt][4];drawFrame(f);document.body.style.background=(P.bt===0?`url(${GR}),`:'repeating-linear-gradient(45deg,#ffffff0a 0 16px,transparent 16px 32px),')+`radial-gradient(circle at 50% 20%,${f},${g} 72%)`;document.body.style.backgroundAttachment='fixed'}
@@ -252,6 +253,7 @@ el.onpointerup=e=>{if(ptr.size===1&&moved<6){const r=el.getBoundingClientRect();
  const h=rc.intersectObjects(sq.concat(PG.children),true)[0];if(h)click(h.object.userData.sq)}ptr.delete(e.pointerId)};
 el.onpointercancel=e=>ptr.delete(e.pointerId);
 el.addEventListener('wheel',e=>{e.preventDefault();dist=cl(dist*(1+e.deltaY*.001),6,34);cam()},{passive:false});
+if(!webgl){let tap=null;el.onpointerdown=e=>{tap=[e.clientX,e.clientY]};el.onpointerup=e=>{if(!tap)return;const r=el.getBoundingClientRect(),s=Math.min(r.width,r.height),f=Math.floor((e.clientX-r.left)/s*8),q=Math.floor((e.clientY-r.top)/s*8);tap=null;if(f>=0&&f<8&&q>=0&&q<8)click(q*8+f)};el.onpointercancel=()=>{tap=null}}
 (function loop(){requestAnimationFrame(loop);R.render(S,C)})();
 const stt=t=>$('on').textContent=t;
 function role(){if(!room)return;const ps=room.peers().filter(p=>p.kind==='viewer'&&p.presence.t!=null).sort((x,y)=>x.presence.t-y.presence.t||(x.peer<y.peer?-1:1));
