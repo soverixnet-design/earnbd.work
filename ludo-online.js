@@ -226,7 +226,8 @@ async function joinRoom(code, fromMatch = false) {
     const data = snap.val();
     if (!data) { notice("এই কোডের রুম পাওয়া যায়নি।", "error"); return; }
     const list = Object.values(data.players || {}).filter(x => x && x.uid);
-    if (data.status === "playing" || list.length >= Number(data.maxPlayers || 2)) { notice("রুমটি শুরু হয়ে গেছে বা পূর্ণ।", "error"); return; }
+    const alreadyMatched = fromMatch && Boolean(data.players?.[user.uid]);
+    if (data.status === "playing" || (!alreadyMatched && list.length >= Number(data.maxPlayers || 2))) { notice("রুমটি শুরু হয়ে গেছে বা পূর্ণ।", "error"); return; }
     await update(ref(db), { [`onlineRooms/ludo/${next}/players/${user.uid}`]: playerEntry() });
     attachRoom(next);
     notice("রুমে যোগ হয়েছে। হোস্ট শুরু করলে খেলা চালু হবে।", "ok");
