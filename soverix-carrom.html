@@ -81,7 +81,7 @@ body{padding-top:68px}
 <div class="chips"><button data-d="0">সহজ</button><button data-d="1">মাঝারি</button><button data-d="2">কঠিন</button></div>
 <button data-m="two">👥 বন্ধুর সাথে (২ জন, একই ফোনে)</button>
 <button data-m="four">🎯 ৪ জন (২ বনাম ২, একই ফোনে)</button>
-<button disabled>🌐 অনলাইন র‍্যান্ডম ম্যাচ (শীঘ্রই আসছে)</button>
+<button id="carrom-online">🌐 অনলাইন রুম / ম্যাচ</button>
 <details><summary>ক্যারাম কীভাবে খেলে?</summary>
 ক্যারাম ২ বা ৪ জনে খেলা হয়। ৪ জনে ২ বনাম ২, সঙ্গী মুখোমুখি বসে।<br>
 • সাদা দল সাদা গুটি, কালো দল কালো গুটি পকেটে ফেলবে। ফেললে আবার চান্স।<br>
@@ -383,6 +383,7 @@ document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{target=+b.datase
 $('home').onclick=()=>{state='idle';$('menu').hidden=false;$('game').hidden=true};
 $('rs').onclick=init;
 $('mu').onclick=()=>{mute=!mute;$('mu').textContent=mute?'🔇':'🔊'};
+document.getElementById('carrom-online').onclick=()=>window.smgGameOnline?.open();
 chips();init();state='idle';loop();
 window.addEventListener('smg-game-online-start',e=>{const d=e.detail||{};if(d.game!=='carrom')return;mode='online';onlineSeat=Number(d.seat||0);sides=(Number(d.maxPlayers||2)===4?[0,1,2,3]:[0,2]);$('menu').hidden=true;$('game').hidden=false;init();hud()});
 window.addEventListener('smg-game-online-stop',e=>{if(e.detail?.game!=='carrom')return;mode='bot';onlineSeat=-1;$('game').hidden=true;$('menu').hidden=false;state='idle'});
@@ -413,4 +414,4 @@ new MutationObserver(()=>{show();detectResult()}).observe($("game"),{subtree:tru
 onValue(ref(db,"leaderboards"),s=>renderRank(s.val()||{}),()=>renderRank({}));
 onAuthStateChanged(auth,async u=>{user=u||null;await loadProfile();show()});
 show();
-</script><script type="module" src="voice-chat.js?game=carrom&v=voice2"></script><script type="module" src="game-online.js?game=carrom&v=online1"></script></body></html>
+</script><script type="module" src="voice-chat.js?game=carrom&v=voice3"></script><script type="module" src="game-online.js?game=carrom&v=online1"></script></body></html>
