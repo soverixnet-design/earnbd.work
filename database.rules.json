@@ -71,6 +71,46 @@
         }
       }
     },
+    "onlineRooms": {
+      "ludo": {
+        "$roomId": {
+          ".read": "auth != null",
+          ".write": "auth != null && ((!data.exists() && newData.child('host').val() == auth.uid) || (data.exists() && (data.child('host').val() == auth.uid || newData.val() == null)))",
+          "players": {
+            ".read": "auth != null",
+            "$uid": {
+              ".write": "auth != null && auth.uid == $uid && (newData.val() == null || newData.child('uid').val() == $uid)",
+              ".validate": "newData.val() == null || (newData.hasChildren(['uid','name','avatar']) && newData.child('uid').val() == $uid && newData.child('name').isString() && newData.child('avatar').isString())"
+            }
+          },
+          "events": {
+            ".read": "auth != null",
+            "$eventId": {
+              ".write": "auth != null && newData.child('uid').val() == auth.uid",
+              ".validate": "newData.hasChildren(['uid','t']) && newData.child('uid').isString() && newData.child('t').isString()"
+            }
+          }
+        }
+      }
+    },
+    "matchmaking": {
+      "ludo": {
+        "queue": {
+          ".read": "auth != null",
+          "$uid": {
+            ".write": "auth != null && auth.uid == $uid",
+            ".validate": "newData.val() == null || (newData.hasChildren(['uid','name','status']) && newData.child('uid').val() == $uid && newData.child('name').isString() && newData.child('status').isString())"
+          }
+        },
+        "matches": {
+          ".read": "auth != null",
+          "$matchId": {
+            ".write": "auth != null",
+            ".validate": "newData.val() == null || (newData.hasChildren(['roomId','users']) && newData.child('roomId').isString() && newData.child('users').hasChildren())"
+          }
+        }
+      }
+    },
     "presence": {
       ".read": "auth != null",
       "$uid": {
@@ -100,6 +140,24 @@
               ".write": "auth != null && ((newData.val() == null && auth.uid == $targetUid) || newData.child('from').val() == auth.uid)",
               ".validate": "newData.val() == null || (newData.hasChildren(['from','type']) && newData.child('from').isString() && newData.child('type').isString())"
             }
+          }
+        }
+      }
+    },
+    "voiceMatchmaking": {
+      "$gameId": {
+        "queue": {
+          ".read": "auth != null",
+          "$uid": {
+            ".write": "auth != null && auth.uid == $uid",
+            ".validate": "newData.val() == null || (newData.hasChildren(['uid','name','status']) && newData.child('uid').val() == $uid && newData.child('name').isString() && newData.child('status').isString())"
+          }
+        },
+        "matches": {
+          ".read": "auth != null",
+          "$matchId": {
+            ".write": "auth != null",
+            ".validate": "newData.val() == null || (newData.hasChildren(['roomId','users']) && newData.child('roomId').isString() && newData.child('users').hasChildren())"
           }
         }
       }

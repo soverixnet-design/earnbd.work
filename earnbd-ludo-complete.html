@@ -67,8 +67,8 @@ filter:drop-shadow(0 1px 0 #a86a00) drop-shadow(0 2px 0 #96600a) drop-shadow(0 3
 <div class="sec"><p class="sm">🤖 কম্পিউটারের সাথে খেলুন · অফলাইন<br>কতজন প্রতিপক্ষ?</p><div class="g3"><button data-m="ai" data-n="1">১ জন</button><button data-m="ai" data-n="2">২ জন</button><button data-m="ai" data-n="3">৩ জন</button></div></div>
 <div class="sec"><p class="sm">👥 এক ফোনে বন্ধুদের সাথে · অফলাইন<br>মোট কতজন খেলবেন?</p><div class="g3"><button data-m="local" data-n="1">২ জন</button><button data-m="local" data-n="2">৩ জন</button><button data-m="local" data-n="3">৪ জন</button></div></div>
 <button class="alt big" id="onl">🌐 অনলাইনে খেলুন</button></div>
-<div class="bx" id="olp" hidden><h1>🌐 অনলাইন</h1><div id="o1" class="bx" style="padding:0;border:0;background:none;width:100%"><button id="fm">🔍 র‍্যান্ডম প্লেয়ার খুঁজুন</button><button id="mkr">নতুন রুম বানান</button><input id="cd" inputmode="numeric" maxlength="4" placeholder="৪ সংখ্যার কোড"><button id="jn">কোড দিয়ে যোগ দিন</button></div>
-<div id="o2" class="bx" hidden style="padding:0;border:0;background:none;width:100%"><p id="ot"></p><button id="go">শুরু করুন</button></div><div id="pl"></div><p class="sm" id="oe"></p><button class="alt" id="ob">← ফিরে যান</button></div></div>
+<div class="bx" id="olp" hidden><h1>🌐 অনলাইন</h1><div id="o1" class="bx" style="padding:0;border:0;background:none;width:100%"><button id="fm">⚡ কোড ছাড়া অনলাইন ম্যাচ</button><button id="mkr">নতুন রুম বানান</button><input id="cd" inputmode="numeric" maxlength="6" placeholder="রুম কোড"><button id="jn">কোড দিয়ে যোগ দিন</button></div>
+<div id="o2" class="bx" hidden style="padding:0;border:0;background:none;width:100%"><p id="ot"></p><button id="smg-ludo-copy" class="alt" type="button">📋 কোড কপি/শেয়ার</button><button id="go">শুরু করুন</button></div><div id="pl"></div><p class="sm" id="oe"></p><button class="alt" id="ob">← ফিরে যান</button></div></div>
 <div id="pf" class="ov" hidden><div class="bx"><h1>👤 প্রোফাইল</h1><p class="sm">ছবি বেছে নিন</p><div id="avg"></div><input id="pn" maxlength="12" placeholder="আপনার নাম"><p class="sm" id="pi"></p><button id="pc">ঠিক আছে</button></div></div>
 <div id="th" class="ov" hidden><div class="bx"><h1>🎨 থিম</h1><p class="sm">বোর্ডের রঙ ও ডিজাইন</p><div id="tg"></div><p class="sm">গুটির ধরন</p><div id="pg"></div><button id="tc">ঠিক আছে</button></div></div>
 <div id="win" class="ov" hidden><div class="bx"><h1 id="wt"></h1><button id="again">আবার খেলুন</button></div></div>
@@ -96,7 +96,7 @@ let LB=[],SRCH=0,mmT=0,nT=0;const setS=s=>{try{RM&&RM.presence({s})}catch(e){}};
 let NM=['কম্পিউটার ১','কম্পিউটার ২','কম্পিউটার ৩','আপনি'],M='ai',OL=null,RM=null;
 // The shared voice module reads the active online room without changing the board.
 window.smgVoiceGetRoom=()=>OL&&OL.code?String(OL.code):'';
-const hum=pl=>M==='ai'?pl===3:1,mine=pl=>M==='ai'?pl===3:M==='local'?1:OL.seat===pl,send=d=>OL&&OL.room.emit('act',d).catch(()=>{});
+const hum=pl=>M==='ai'?pl===3:1,mine=pl=>M==='ai'?pl===3:M==='local'?1:OL.seat===pl,send=d=>OL&&OL.room&&typeof OL.room.emit==='function'?OL.room.emit('act',d).catch(()=>{}):window.smgLudoBridge?.send?.(d);
 let AV=[],ID=[];
 function setNames(a,av,id){NM=a;AV=av||[];ID=id||[];cards.forEach((d,i)=>{d.querySelector('.dot').textContent=AV[i]||'🙂';const n=d.querySelector('.nm');n.textContent=NM[i];if(ID[i]){const t=document.createElement('small');t.textContent='#'+ID[i];n.append(t)}});drawBoard()}
 const aiNames=()=>setNames(['কম্পিউটার ১','কম্পিউটার ২','কম্পিউটার ৩',PR.n],['🤖','🤖','🤖',PR.a],[,,,PR.id]);
@@ -203,7 +203,7 @@ $('#mkr').onclick=()=>enter(String(1000+Math.random()*9000|0),1);
 $('#jn').onclick=()=>{const c=$('#cd').value.replace(/[০-৯]/g,d=>'০১২৩৪৫৬৭৮৯'.indexOf(d)).trim();c.length===4?enter(c,0):$('#oe').textContent='৪ সংখ্যার কোড দিন'};
 $('#ob').onclick=leaveOL;
 $('#go').onclick=()=>{const me=OL.peers.find(p=>p.isMe&&p.sameTab);if(!me)return;const o=[me.peer,...OL.peers.filter(p=>p.kind==='viewer'&&!p.isMe).map(p=>p.peer).sort()].slice(0,4);send({t:'go',o});startOL(o)};
-$('#again').onclick=$('#rs').onclick=()=>{G.dead=1;leaveOL();$('#win').hidden=true;$('#menu').hidden=false};
+$('#again').onclick=$('#rs').onclick=()=>{G.dead=1;if(window.smgLudoOnlineLeave)window.smgLudoOnlineLeave();else leaveOL();$('#win').hidden=true;$('#menu').hidden=false};
 $('#tb').onclick=()=>{renderTh();$('#th').hidden=false};$('#tc').onclick=()=>$('#th').hidden=true;
 addEventListener('resize',fit);let z={};try{z=JSON.parse(localStorage.getItem('ludo')||'{}')}catch(e){}PS=(z.p|0)%6;fit();applyTheme((z.t|0)%5);savePR();aiNames();chip();
 function renderPf(){$('#avg').innerHTML=AVL.map(a=>`<button class="av${a===PR.a?' sel':''}" data-a="${a}">${a}</button>`).join('');$('#avg').querySelectorAll('button').forEach(b=>b.onclick=()=>{PR.n=cn($('#pn').value)||PR.n;PR.a=b.dataset.a;renderPf()});$('#pn').value=PR.n;$('#pi').textContent='প্লেয়ার নম্বর: #'+PR.id}
@@ -211,6 +211,21 @@ $('#pb').onclick=$('#pb2').onclick=()=>{if(G.act&&!G.dead&&G.phase!=='over'){msg
 $('#pc').onclick=()=>{PR.n=cn($('#pn').value)||'আপনি';savePR();chip();$('#pf').hidden=true;try{RM&&RM.presence({n:PR.n,a:PR.a,i:PR.id})}catch(e){}if(M==='ai')aiNames()};requestAnimationFrame(frame);
 
 function chip(){const c=$('#pb2');c.querySelector('.av2').textContent=PR.a;c.querySelector('b').textContent=PR.n;c.querySelector('small').textContent='প্লেয়ার #'+PR.id}
+window.smgLudoGetProfile=()=>({name:PR.n,avatar:PR.a,id:PR.id});
+window.smgLudoBridge={
+  send:()=>Promise.resolve(),
+  online(c){
+    const fake={emit:d=>Promise.resolve(window.smgLudoBridge.send?.(d)),leave:()=>{}};
+    OL={room:fake,host:Boolean(c.host),code:String(c.code||''),seat:Number(c.seat),peers:[],owner:c.owners||{},started:1};
+    M='online';SRCH=0;setNames(c.names||['লাল','সবুজ','হলুদ','নীল'],c.avatars||['🟥','🟩','🟨','🟦'],c.ids||[]);newGame(0,c.activePlayers||[0,1]);
+  },
+  receive(d){
+    if(!OL||M!=='online'||!d)return;const uid=String(d.uid||'');
+    if(d.t==='r'&&G.phase==='roll'&&OL.owner&&OL.owner[G.cur]===uid&&Number(d.r)>=1&&Number(d.r)<=6)doRoll(Number(d.r));
+    else if(d.t==='p'&&G.phase==='pick'&&OL.owner&&OL.owner[G.cur]===uid&&G.mv.includes(Number(d.i)))play(Number(d.i));
+  },
+  leave(){try{leaveOL()}catch(e){OL=null;M='ai'}}
+};
 $('#tb2').onclick=()=>$('#tb').onclick();
 const note=t=>{$('#nt').textContent=t;clearTimeout(nT);nT=setTimeout(()=>$('#nt').textContent='',4500)};
 const nmOf=p=>cn(p.presence.n)||'একজন প্লেয়ার',avOf=p=>AVL.includes(p.presence.a)?p.presence.a:'🙂';
@@ -223,4 +238,4 @@ $('#fm').onclick=()=>{if(!RM)return;SRCH=SRCH?0:1;setS(SRCH?'f':'m');$('#fm').te
 RM.presence({n:PR.n,a:PR.a,i:PR.id,s:'m'});let first=1;
 RM.onPeers(c=>{LB=c.peers.filter(p=>p.kind==='viewer');drawLB();if(!first){c.joined.forEach(p=>{if(!p.isMe)note('🔔 '+avOf(p)+' '+nmOf(p)+' অনলাইনে এসেছে')});c.updated.forEach(p=>{if(!p.isMe&&p.presence.s==='f')note('🔔 '+nmOf(p)+' খেলার জন্য খুঁজছে — আপনিও খুঁজুন!')})}first=0;mm()});
 RM.on('mm',m=>{if(m.isMe||!SRCH||OL)return;const d=m.data||{},me=LB.find(p=>p.isMe&&p.sameTab);if(me&&Array.isArray(d.t)&&d.t.includes(me.peer)&&/^\d{4}$/.test(d.c)){clearTimeout(mmT);mmT=0;enter(d.c,0)}})})();
-</script><script type="module" src="voice-chat.js?game=ludo&v=voice1"></script></body></html>
+</script><script type="module" src="voice-chat.js?game=ludo&v=voice1"></script><script type="module" src="ludo-online.js?v=online2"></script></body></html>
