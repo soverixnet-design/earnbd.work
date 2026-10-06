@@ -161,7 +161,7 @@ const $=id=>document.getElementById(id);
 function renderMatchMode(){const virtual=matchMode==='virtual';$('smg-chess-mode-toggle').textContent=virtual?'🪙 পয়েন্ট ম্যাচ':'🆓 ফ্রি ম্যাচ';$('smg-chess-mode-note').textContent=virtual?'ম্যাচ: ভার্চুয়াল পয়েন্ট · এন্ট্রি ১০ কয়েন':'ম্যাচ: ফ্রি প্লে';window.smgChessMatchMode=matchMode}
 function setMatchMode(next){matchMode=next==='virtual'?'virtual':'free';try{localStorage.setItem('shakil-match-mode-v1',matchMode)}catch(e){}renderMatchMode()}
 function emitChessResult(winner){if(resultDispatched)return;resultDispatched=true;const perspective=mode===2?hc:mode===1?myC:1;const result=msg.includes('ড্র')?'draw':winner===perspective?'win':'loss';window.dispatchEvent(new CustomEvent('smg-chess-match-result',{detail:{game:'chess',result,winner,mode:matchMode,entryCost:matchEntryCharged?10:0}}));matchEntryCharged=false}
-async function beginChess(nextMode){if(matchMode==='virtual'&&!matchEntryCharged){if(typeof window.smgChessRequestEntry!=='function'){stt('পয়েন্ট ম্যাচের জন্য আগে লগইন করুন');return}const ok=await window.smgChessRequestEntry(10);if(!ok)return;matchEntryCharged=true}go(nextMode)}
+async function beginChess(nextMode){if(nextMode===1&&window.smgGameOnline){window.smgGameOnline.open();return}if(matchMode==='virtual'&&!matchEntryCharged){if(typeof window.smgChessRequestEntry!=='function'){stt('পয়েন্ট ম্যাচের জন্য আগে লগইন করুন');return}const ok=await window.smgChessRequestEntry(10);if(!ok)return;matchEntryCharged=true}go(nextMode)}
 if($('smg-chess-mode-toggle'))$('smg-chess-mode-toggle').onclick=()=>setMatchMode(matchMode==='virtual'?'free':'virtual');
 function sync(){ui()}
 /* ---------- 3D ---------- */
@@ -263,7 +263,7 @@ function role(){if(!room)return;const ps=room.peers().filter(p=>p.kind==='viewer
  if(!ml.length){const n=k===0?1:k===1?-1:0;if(n!==myC){myC=n;if(n)view(n===1?0:Math.PI,.95)}}
  stt(`অনলাইন, রুম "${$('rc').value}": তুমি ${myC===1?'সাদা':myC===-1?'কালো':'দর্শক'}, ${ps.length} জন আছে`+(ps.length<2?' (বন্ধুর জন্য অপেক্ষা, একই কোড দিয়ে ঢুকতে বলো)':''))}
 function replay(L){quiet=true;init();L.forEach(x=>{const a=+x[0],z=+x[1];if(col(b[a])===turn&&legal(a).includes(z))doMove(a,z,x[2],true)});quiet=false;sel=-1;mv=[];draw()}
-async function join(){const code=$('rc').value.toLowerCase().replace(/[^a-z0-9]/g,'');if(!code)return stt('আগে একটা রুম কোড দাও');
+async function join(){if(window.smgGameOnline){window.smgGameOnline.open();return}const code=$('rc').value.toLowerCase().replace(/[^a-z0-9]/g,'');if(!code)return stt('আগে একটা রুম কোড দাও');
  const r=window.claude&&await window.claude.use('room');if(!r)return stt('অনলাইন রুম এই সাইটে এখনো চালু হয়নি—ফ্রি বা ভার্চুয়াল-পয়েন্ট মোডে খেলুন');
  if(room){room.leave();room=null}
  try{room=await r.join('chess-'+code)}catch(e){room=null;return stt('রুমে ঢোকা যায়নি, আবার চেষ্টা করো')}
@@ -301,7 +301,7 @@ function mui(){const mb=$('mb'),lv=$('lv');mb.innerHTML='';lv.innerHTML='';
  $('oc').style.display=mode===1?'flex':'none';lv.style.display=mode===2?'flex':'none';
  LV.forEach((n,i)=>lv.appendChild(mk('button',n,lvl===i?'on':'',()=>{lvl=i;mui()})));
  lv.appendChild(mk('button','তুমি: '+(hc===1?'সাদা':'কালো'),'',()=>{hc=-hc;mui();newGame()}))}
-function setMode(m){if(room){room.leave();room=null}mode=m;myC=0;stt(m===1?'একটা রুম কোড দাও (বা "নতুন কোড"), বন্ধুও একই কোড দিয়ে ঢুকবে':'');mui();newGame()}
+function setMode(m){if(m===1&&window.smgGameOnline){window.smgGameOnline.open();return}if(room){room.leave();room=null}mode=m;myC=0;stt(m===1?'একটা রুম কোড দাও (বা "নতুন কোড"), বন্ধুও একই কোড দিয়ে ঢুকবে':'');mui();newGame()}
 function newGame(){clearTimeout(aiT);prm.style.display='none';init();if(mode===2)view(hc===1?0:Math.PI,.95)}
 function maybeAI(){clearTimeout(aiT);if(mode===2&&!over&&!pend&&turn!==hc){$('st').textContent='কম্পিউটার ভাবছে...';aiT=setTimeout(aiPlay,150)}}
 /* ---------- computer player ---------- */
@@ -357,6 +357,14 @@ function home(st){const h=$('home'),c=$('hb');h.style.display='flex';c.innerHTML
   c.appendChild(mk('button','▶ খেলা শুরু','big',()=>beginChess(2)));c.appendChild(mk('button','← পেছনে','',()=>home(0)))}}
 $('hm').onclick=()=>home(0);
 ui();mui();init();applyAll();fit();home(0);
+function attachUnifiedChess(d){
+  mode=1;myC=Number(d.seat||0)===0?1:-1;
+  room={emit:(type,data)=>window.smgGameOnline?.send({type,...data}),leave:()=>{}};
+  $('home').style.display='none';$('oc').style.display='none';mui();init();draw();stt(`অনলাইন রুম ${d.code||''} · তুমি ${myC===1?'সাদা':'কালো'}`)
+}
+window.addEventListener('smg-game-online-start',e=>{if(e.detail?.game==='chess')attachUnifiedChess(e.detail)});
+window.addEventListener('smg-game-online-stop',e=>{if(e.detail?.game!=='chess')return;room=null;mode=0;myC=0;home(0)});
+window.addEventListener('smg-game-online-action',e=>{const d=e.detail||{},a=d.action||{};if(d.game!=='chess'||!room||a.uid===window.smgGameOnline?.uid)return;if(a.type==='mv'){if(over||a.n!==ml.length+1||col(b[a.a])!==turn||!legal(a.a).includes(a.z))return;doMove(a.a,a.z,a.p,true);sel=-1;mv=[];draw()}else if(a.type==='rg'){const c=Number(a.c);if(c===1||c===-1)endResign(c)}else if(a.type==='rs'){newGame()}});
 </script>
 <script type="module">
 import{initializeApp,getApps,getApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -376,4 +384,4 @@ window.smgChessRequestEntry=async cost=>{if(!user){q("smg-chess-profile-email").
 async function saveResult(d){const result=d.result,virtual=d.mode==="virtual",points=virtual?(result==="win"?20:result==="draw"?5:0):(result==="win"?10:result==="draw"?3:2),coinReward=virtual?(result==="win"?20:result==="draw"?10:0):(result==="win"?10:result==="draw"?3:2);stats={...stats,games:stats.games+1,wins:stats.wins+(result==="win"?1:0),losses:stats.losses+(result==="loss"?1:0),points:stats.points+points};writeLocal();if(user){const base=Number(profile.coins??1000),coins=base+coinReward;profile={...profile,coins,games:Number(profile.games||0)+1,wins:Number(profile.wins||0)+(result==="win"?1:0),losses:Number(profile.losses||0)+(result==="loss"?1:0),points:Number(profile.points||0)+points};const record={name:playerName(),games:stats.games,wins:stats.wins,losses:stats.losses,points:stats.points,mode:virtual?"virtual":"free",updatedAt:Date.now()},updates={};updates["leaderboards/"+user.uid+"/chess"]=record;updates["users/"+user.uid+"/games"]=profile.games;updates["users/"+user.uid+"/wins"]=profile.wins;updates["users/"+user.uid+"/losses"]=profile.losses;updates["users/"+user.uid+"/points"]=profile.points;updates["users/"+user.uid+"/coins"]=coins;try{await update(ref(db),updates)}catch(e){}}show()}
 window.addEventListener("smg-chess-match-result",e=>saveResult(e.detail||{}));q("smg-chess-profile-btn").onclick=()=>q("smg-chess-profile").hidden=!q("smg-chess-profile").hidden;q("smg-chess-login").onclick=()=>{if(user)location.href="index.html#online";else location.href="index.html?login=1#online"};
 onValue(ref(db,"leaderboards"),s=>renderRank(s.val()||{}),()=>renderRank({}));onAuthStateChanged(auth,async u=>{user=u||null;if(!u){profile={};stats=readLocal();show();return}try{profile=await ensureProfile(u);stats=readLocal();if(!stats.games&&profile.games)stats={games:profile.games,wins:profile.wins||0,losses:profile.losses||0,points:profile.points||0};await dailyReward()}catch(e){profile={name:u.displayName||"Player",email:u.email||"",coins:1000};stats=readLocal()}show();renderRank({})});
-</script><script type="module" src="voice-chat.js?game=chess&v=voice2"></script></body></html>
+</script><script type="module" src="voice-chat.js?game=chess&v=voice2"></script><script type="module" src="game-online.js?game=chess&v=online1"></script></body></html>

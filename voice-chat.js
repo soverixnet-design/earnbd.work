@@ -70,6 +70,9 @@ css.textContent = `
 #smg-vc-members{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;min-height:22px}
 #smg-vc-members span{padding:4px 7px;border-radius:999px;background:#ffffff14;color:#e2e8f0;font-size:11px}
 #smg-vc-hint{margin:9px 0 0;color:#94a3b8;font-size:10px;line-height:1.35}
+#smg-vc-help{width:100%;margin-top:7px;border:1px solid #60a5fa55;border-radius:9px;padding:7px;background:#1e3a8a;color:#dbeafe;font:700 11px/1.2 system-ui,sans-serif;cursor:pointer}
+#smg-vc-helpbox{margin-top:7px;padding:8px;border-radius:9px;background:#020617aa;color:#cbd5e1;font-size:10px;line-height:1.45}
+#smg-vc-helpbox[hidden]{display:none}
 @media(max-width:520px){#smg-vc-toggle{padding:9px 11px;font-size:12px}#smg-vc-panel{padding:12px}}
 `;
 document.head.appendChild(css);
@@ -87,6 +90,8 @@ root.innerHTML = `
     <button id="smg-vc-quick" type="button">⚡ কোড ছাড়া অনলাইনে খুঁজুন</button>
     <div id="smg-vc-members" aria-live="polite"></div>
     <div id="smg-vc-tools"><button id="smg-vc-mute" type="button" disabled>🔇 মাইক বন্ধ</button></div>
+    <button id="smg-vc-help" type="button">❔ মাইক permission ঠিক করার নিয়ম</button>
+    <div id="smg-vc-helpbox" hidden>Android Chrome: ঠিকানা বারের 🔒 চিহ্ন → Permissions → Microphone → Allow, তারপর পেজ Reload করুন। ফোনের Settings → Apps → Chrome → Permissions → Microphone-ও Allow থাকতে হবে।</div>
     <p id="smg-vc-hint">একই গেমে থাকা খেলোয়াড়রা একই কোড ব্যবহার করলে কথা বলতে পারবেন। মাইক্রোফোনের অনুমতি লাগবে।</p>
   </section>`;
 document.body.appendChild(root);
@@ -101,6 +106,8 @@ const leaveBtn = $("smg-vc-leave");
 const quickBtn = $("smg-vc-quick");
 const muteBtn = $("smg-vc-mute");
 const membersEl = $("smg-vc-members");
+const helpBtn = $("smg-vc-help");
+const helpBox = $("smg-vc-helpbox");
 
 let currentUser = null;
 let joined = false;
@@ -126,6 +133,39 @@ const safeKey = value => String(value || "").trim().replace(/[^A-Za-z0-9_-]/g, "
 const voicePath = raw => `voiceRooms/${safeKey(`${gameKey}-${raw}`)}`;
 const nameOf = () => (currentUser?.displayName || currentUser?.email?.split("@")[0] || "Player").trim().slice(0, 24) || "Player";
 const avatarOf = () => currentUser?.photoURL ? "🙂" : "👤";
+
+async function micPermission() {
+  try {
+    if (!navigator.permissions?.query) return "unknown";
+    const result = await navigator.permissions.query({ name: "microphone" });
+    return result.state || "unknown";
+  } catch (e) { return "unknown"; }
+}
+
+function micError(e) {
+  const code = String(e?.code || e?.name || "").toLowerCase();
+  if (code.includes("permission-denied") || code.includes("permission_denied")) return "Firebase voice-room permission বন্ধ আছে। database.rules.json Firebase Realtime Database-এ deploy করুন।";
+  if (code.includes("notallowed") || code.includes("securityerror")) return "মাইক্রোফোন ব্লক করা আছে। ঠিকানা বারের 🔒 → Permissions → Microphone → Allow করে পেজ Reload করুন।";
+  if (code.includes("notfound")) return "এই ডিভাইসে মাইক্রোফোন পাওয়া যায়নি। ফোনের Microphone permission ও headset যাচাই করুন।";
+  if (code.includes("notreadable") || code.includes("abort")) return "অন্য কোনো অ্যাপ মাইক্রোফোন ব্যবহার করছে। সেটি বন্ধ করে আবার চেষ্টা করুন।";
+  if (code.includes("secure") || code.includes("https")) return "ভয়েসের জন্য HTTPS পেজ দরকার। earnbd.work-এর live link ব্যবহার করুন।";
+  return "মাইক্রোফোন চালু করা যায়নি। Chrome ও ফোনের Microphone permission Allow করে আবার চেষ্টা করুন।";
+}
+
+async function requestMicrophone() {
+  if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+    const e = new Error("Secure context required"); e.name = "SecurityError"; throw e;
+  }
+  const state = await micPermission();
+  if (state === "denied") { const e = new Error("Microphone permission denied"); e.name = "NotAllowedError"; throw e; }
+  try {
+    return await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false });
+  } catch (e) {
+    // Some Android devices reject advanced constraints even when the mic is allowed.
+    if (["OverconstrainedError", "NotReadableError"].includes(e?.name)) return navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    throw e;
+  }
+}
 
 function setStatus(text, kind = "warn") {
   statusEl.textContent = text;
@@ -157,6 +197,7 @@ function openPanel(open) {
   panel.hidden = !open;
   toggle.setAttribute("aria-expanded", String(open));
   if (open && !joined) roomInput.focus();
+  if (open && currentUser) micPermission().then(state => { if (state === "denied") setStatus("মাইক্রোফোন permission বন্ধ আছে—নিচের নির্দেশনা দেখুন।", "error"); });
 }
 
 function emitRoom(raw) {
@@ -336,7 +377,7 @@ async function quickVoiceMatch() {
   if (voiceQueueMode) { await stopVoiceQueue(true); setStatus("ভয়েস ম্যাচ খোঁজা বন্ধ হয়েছে।", "warn"); return; }
   try {
     setStatus("মাইক্রোফোনের অনুমতি চাওয়া হচ্ছে…", "warn");
-    if (!localStream) localStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false });
+    if (!localStream) localStream = await requestMicrophone();
     voiceQueueMode = true;
     const qref = ref(db, `voiceMatchmaking/${gameKey}/queue/${currentUser.uid}`);
     await set(qref, voiceQueueEntry());
@@ -347,7 +388,7 @@ async function quickVoiceMatch() {
     setStatus("⚡ কোড ছাড়া ভয়েস ম্যাচ খোঁজা হচ্ছে…", "warn");
   } catch (e) {
     if (localStream) { localStream.getTracks().forEach(track => track.stop()); localStream = null; }
-    setStatus(e?.name === "NotAllowedError" ? "মাইক্রোফোনের অনুমতি দেওয়া হয়নি।" : "ভয়েস ম্যাচ শুরু করা যায়নি।", "error");
+    setStatus(micError(e), "error");
   }
 }
 
@@ -366,7 +407,7 @@ async function joinRoom() {
   joinBtn.disabled = true;
   setStatus("মাইক্রোফোনের অনুমতি চাওয়া হচ্ছে…", "warn");
   try {
-    if (!localStream) localStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false });
+    if (!localStream) localStream = await requestMicrophone();
     joinedRaw = raw;
     joinedPath = voicePath(raw);
     const member = ref(db, `${joinedPath}/members/${currentUser.uid}`);
@@ -387,7 +428,7 @@ async function joinRoom() {
     joinedRaw = "";
     joinedPath = "";
     joinBtn.disabled = false;
-    setStatus(e?.name === "NotAllowedError" ? "মাইক্রোফোনের অনুমতি দেওয়া হয়নি।" : "ভয়েস রুমে যোগ দেওয়া যায়নি।", "error");
+    setStatus(micError(e), "error");
   }
 }
 
@@ -424,6 +465,7 @@ muteBtn.onclick = () => {
   updateControls();
   if (joined) setStatus(muted ? "মাইক বন্ধ আছে।" : "মাইক চালু আছে।", "ok");
 };
+helpBtn.onclick = () => { helpBox.hidden = !helpBox.hidden; };
 roomInput.addEventListener("keydown", event => { if (event.key === "Enter") joinRoom(); });
 
 window.smgVoiceSetRoom = emitRoom;

@@ -218,5 +218,5 @@ $('#fm').onclick=()=>{if(!RM)return;SRCH=SRCH?0:1;setS(SRCH?'f':'m');$('#fm').te
 RM.presence({n:PR.n,a:PR.a,i:PR.id,s:'m'});let first=1;
 RM.onPeers(c=>{LB=c.peers.filter(p=>p.kind==='viewer');drawLB();if(!first){c.joined.forEach(p=>{if(!p.isMe)note('🔔 '+avOf(p)+' '+nmOf(p)+' অনলাইনে এসেছে')});c.updated.forEach(p=>{if(!p.isMe&&p.presence.s==='f')note('🔔 '+nmOf(p)+' খেলার জন্য খুঁজছে — আপনিও খুঁজুন!')})}first=0;mm()});
 RM.on('mm',m=>{if(m.isMe||!SRCH||OL)return;const d=m.data||{},me=LB.find(p=>p.isMe&&p.sameTab);if(me&&Array.isArray(d.t)&&d.t.includes(me.peer)&&/^\d{4}$/.test(d.c)){clearTimeout(mmT);mmT=0;enter(d.c,0)}})})();
-</script><script type="module" src="admin-runtime.js?v=admin-v3"></script><script type="module" src="presence-tracker.js?v=activity-v1"></script><script type="module" src="voice-chat.js?game=arcade&v=voice2"></script>
+</script><script type="module" src="admin-runtime.js?v=admin-v3"></script><script type="module" src="presence-tracker.js?v=activity-v1"></script><script type="module" src="voice-chat.js?game=arcade&v=voice2"></script><script type="module" src="game-online.js?game=arcade&v=online1"></script>
 </body></html>

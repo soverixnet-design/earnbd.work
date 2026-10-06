@@ -104,7 +104,7 @@ const W=600,F=28,LO=110,HI=490,R=13,SR=17,PR=30;
 const PC=[[F+10,F+10],[W-F-10,F+10],[F+10,W-F-10],[W-F-10,W-F-10]];
 const $=id=>document.getElementById(id),cv=$('c'),x=cv.getContext('2d');
 const SIDE=['নিচের','ডানের','উপরের','বাঁয়ের'],NRM=[[0,-1],[-1,0],[0,1],[1,0]];
-let mode='bot',diff=1,sides=[0,2],coins=[],st,B,turn,score,cap,pend,state='idle',drag,slide,ev,over,note='',mute=false,ac,ba=null,fc=0,fx=[],board=1,target=30,botName='রাহাত';
+let mode='bot',diff=1,sides=[0,2],onlineSeat=-1,coins=[],st,B,turn,score,cap,pend,state='idle',drag,slide,ev,over,note='',mute=false,ac,ba=null,fc=0,fx=[],board=1,target=30,botName='রাহাত';
 const NAMES=['রাহাত','তানভীর','সাকিব','নাবিল','ফাহিম','মাহি'];
 const mk=(a,b,t)=>({x:a,y:b,vx:0,vy:0,t,r:R,m:1,in:true});
 const place=(s,u)=>s===0?[u,W-90]:s===1?[W-90,u]:s===2?[u,90]:[90,u];
@@ -113,11 +113,12 @@ function pname(p){return 'খেলোয়াড় '+(p+1)}
 function tname(t){
   if(mode==='bot')return t?botName+' (কালো)':'আপনি (সাদা)';
   if(mode==='two')return pname(t)+(t?' (কালো)':' (সাদা)');
+  if(mode==='online')return pname(t);
   return t?'কালো দল (২ ও ৪)':'সাদা দল (১ ও ৩)';
 }
 const bn=n=>String(n).replace(/\d/g,d=>'০১২৩৪৫৬৭৮৯'[d]);
 const isBot=()=>mode==='bot'&&turn===1;
-const human=()=>!over&&state==='aim'&&!isBot();
+const human=()=>!over&&state==='aim'&&!isBot()&&(mode!=='online'||turn===onlineSeat);
 function init(){score=[0,0];turn=0;over=false;board=1;setup()}
 function setup(){
   const c=W/2;coins=[mk(c,c,'q')];
@@ -163,7 +164,7 @@ cv.addEventListener('pointerup',e=>{
   if(!drag||!human()){drag=null;return}
   const p=pos(e);drag=null;
   const dx=st.x-p.x,dy=st.y-p.y,d=Math.hypot(dx,dy);if(d<14)return;
-  const sp=Math.min(d,170)*0.135;shoot(dx/d*sp,dy/d*sp);
+  const sp=Math.min(d,170)*0.135;const vx=dx/d*sp,vy=dy/d*sp;if(mode==='online')window.smgGameOnline?.send({type:'shot',turn,u:st.u,vx,vy});shoot(vx,vy);
 });
 function beep(f,d,v){
   if(mute||!ac)return;
@@ -383,6 +384,9 @@ $('home').onclick=()=>{state='idle';$('menu').hidden=false;$('game').hidden=true
 $('rs').onclick=init;
 $('mu').onclick=()=>{mute=!mute;$('mu').textContent=mute?'🔇':'🔊'};
 chips();init();state='idle';loop();
+window.addEventListener('smg-game-online-start',e=>{const d=e.detail||{};if(d.game!=='carrom')return;mode='online';onlineSeat=Number(d.seat||0);sides=(Number(d.maxPlayers||2)===4?[0,1,2,3]:[0,2]);$('menu').hidden=true;$('game').hidden=false;init();hud()});
+window.addEventListener('smg-game-online-stop',e=>{if(e.detail?.game!=='carrom')return;mode='bot';onlineSeat=-1;$('game').hidden=true;$('menu').hidden=false;state='idle'});
+window.addEventListener('smg-game-online-action',e=>{const d=e.detail||{},a=d.action||{};if(d.game!=='carrom'||a.type!=='shot'||mode!=='online'||a.uid===window.smgGameOnline?.uid)return;if(state!=='aim'||Number(a.turn)!==Number(turn))return;setU(Number(a.u));shoot(Number(a.vx),Number(a.vy))});
 </script><script type="module">
 import{initializeApp,getApps,getApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import{getAuth,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -409,4 +413,4 @@ new MutationObserver(()=>{show();detectResult()}).observe($("game"),{subtree:tru
 onValue(ref(db,"leaderboards"),s=>renderRank(s.val()||{}),()=>renderRank({}));
 onAuthStateChanged(auth,async u=>{user=u||null;await loadProfile();show()});
 show();
-</script><script type="module" src="voice-chat.js?game=carrom&v=voice2"></script></body></html>
+</script><script type="module" src="voice-chat.js?game=carrom&v=voice2"></script><script type="module" src="game-online.js?game=carrom&v=online1"></script></body></html>
