@@ -526,7 +526,13 @@ async function joinRoom(rawOverride = "", options = {}) {
     const path = voicePath(raw);
     const blockSnap = await get(ref(db, `${path}/blocks/${currentUser.uid}`));
     if (blockSnap.exists()) { const e = new Error("blocked"); e.code = "voice-blocked"; throw e; }
-    const meta = await setRoomMeta(path, raw);
+    let meta = {};
+    try { meta = await setRoomMeta(path, raw); }
+    catch (e) {
+      // Older deployments may still have the previous voice rules. Membership
+      // can continue in a local-owner fallback until the new rules are pasted.
+      if (!String(e?.code || "").toUpperCase().includes("PERMISSION_DENIED")) throw e;
+    }
     if (options.requestMic && !localStream) localStream = await requestMicrophone();
     const member = ref(db, `${path}/members/${currentUser.uid}`);
     const signals = ref(db, `${path}/signals/${currentUser.uid}`);
@@ -542,6 +548,7 @@ async function joinRoom(rawOverride = "", options = {}) {
       await remove(member).catch(() => {});
       const e = new Error("Voice room is full"); e.code = "voice-room-full"; throw e;
     }
+    if (!meta.ownerUid) meta.ownerUid = afterEntries[0]?.uid || currentUser.uid;
     if (meta.ownerUid && meta.ownerUid !== currentUser.uid) {
       const ownerStillPresent = await get(ref(db, `${path}/members/${meta.ownerUid}`));
       if (!ownerStillPresent.exists()) {
