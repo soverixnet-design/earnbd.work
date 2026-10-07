@@ -126,10 +126,22 @@
     "voiceRooms": {
       "$roomId": {
         ".read": "auth != null",
+        "meta": {
+          ".read": "auth != null",
+          ".write": "auth != null && ((!data.exists() && newData.child('ownerUid').val() == auth.uid) || (data.exists() && (data.child('ownerUid').val() == auth.uid || (!root.child('voiceRooms').child($roomId).child('members').child(data.child('ownerUid').val()).exists() && newData.child('ownerUid').val() == auth.uid))))",
+          ".validate": "newData.val() == null || (newData.hasChildren(['ownerUid','title','maxMembers']) && newData.child('ownerUid').isString() && newData.child('title').isString() && newData.child('maxMembers').val() == 5)"
+        },
+        "blocks": {
+          ".read": "auth != null",
+          "$uid": {
+            ".write": "auth != null && root.child('voiceRooms').child($roomId).child('meta').child('ownerUid').val() == auth.uid",
+            ".validate": "newData.val() == null || (newData.hasChildren(['uid','by']) && newData.child('uid').val() == $uid && newData.child('by').val() == auth.uid)"
+          }
+        },
         "members": {
           ".read": "auth != null",
           "$uid": {
-            ".write": "auth != null && auth.uid == $uid && (newData.val() == null || newData.child('uid').val() == $uid)",
+            ".write": "auth != null && (auth.uid == $uid || root.child('voiceRooms').child($roomId).child('meta').child('ownerUid').val() == auth.uid) && (newData.val() == null || newData.child('uid').val() == $uid)",
             ".validate": "newData.val() == null || (newData.hasChildren(['uid','name']) && newData.child('uid').val() == $uid && newData.child('name').isString())"
           }
         },
@@ -137,7 +149,7 @@
           "$targetUid": {
             ".read": "auth != null && auth.uid == $targetUid",
             "$signalId": {
-              ".write": "auth != null && ((newData.val() == null && auth.uid == $targetUid) || newData.child('from').val() == auth.uid)",
+              ".write": "auth != null && ((newData.val() == null && auth.uid == $targetUid) || (newData.child('from').val() == auth.uid && (newData.child('type').val() != 'moderate' || root.child('voiceRooms').child($roomId).child('meta').child('ownerUid').val() == auth.uid)))",
               ".validate": "newData.val() == null || (newData.hasChildren(['from','type']) && newData.child('from').isString() && newData.child('type').isString())"
             }
           }

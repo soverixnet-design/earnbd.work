@@ -155,6 +155,7 @@
     onValue(ref(db,"siteSettings"),s=>applyAdminSettings(s.val()||{}),()=>{});onValue(ref(db,"games"),s=>mergeGames(s.val()||{}),()=>{});
     onAuthStateChanged(auth,async u=>{currentUser=u||null;if(!u){currentProfile=null;renderUser();watchLeaderboard();watchPresence();return}try{currentProfile=await ensureProfile(u)}catch(e){currentProfile={name:u.displayName||"Player",email:u.email||"",avatar:selectedAvatar,coins:1000}}renderUser();watchLeaderboard();watchPresence();});
   </script>
+  <script type="module" src="voice-chat.js?game=lounge&v=voice6"></script>
   <script type="module" src="admin-runtime.js?v=admin-v4"></script>
   <script type="module" src="presence-tracker.js?v=activity-v2"></script>
 </body>
