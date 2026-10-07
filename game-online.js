@@ -70,10 +70,10 @@ css.textContent = `
 #smg-online-hint{margin:9px 0 0;color:#94a3b8;font-size:10px;line-height:1.35}
 #smg-game-dock{position:fixed;left:50%;bottom:max(12px,env(safe-area-inset-bottom));z-index:190;display:flex;align-items:flex-end;justify-content:center;gap:8px;max-width:calc(100vw - 16px);transform:translateX(-50%);pointer-events:none}
 #smg-game-dock>*{pointer-events:auto}
-#smg-game-dock #smg-online{position:relative;left:auto;bottom:auto;display:flex;flex-direction:column;align-items:flex-start}
-#smg-game-dock #smg-online-panel{margin:0 0 8px}
+#smg-game-dock #smg-online{position:relative;left:auto;bottom:auto;display:block}
+#smg-game-dock #smg-online-panel{position:fixed;left:50%;bottom:calc(max(12px,env(safe-area-inset-bottom)) + 48px);margin:0;transform:translateX(-50%)}
 #smg-game-dock #smg-voice-chat{position:relative;right:auto;bottom:auto}
-#smg-game-dock #smg-vc-panel{margin:0 0 8px}
+#smg-game-dock #smg-vc-panel{position:fixed;left:50%;bottom:calc(max(12px,env(safe-area-inset-bottom)) + 48px);margin:0;transform:translateX(-50%)}
 @media(max-width:520px){#smg-online-toggle{padding:9px 11px;font-size:12px}#smg-online-panel{padding:12px}}
 @media(max-width:520px){#smg-game-dock{width:calc(100vw - 16px);gap:6px}#smg-online-panel{width:min(350px,calc(100vw - 16px))}}
 `;
