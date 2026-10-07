@@ -403,7 +403,7 @@ async function handleSignal(message) {
       await addQueuedCandidates(uid, entry);
       const answer = await entry.pc.createAnswer();
       await entry.pc.setLocalDescription(answer);
-      await sendSignal(uid, { type: "answer", answer: entry.pc.localDescription });
+      await sendSignal(uid, { type: "answer", answer: (entry.pc.localDescription?.toJSON ? entry.pc.localDescription.toJSON() : { type: entry.pc.localDescription?.type, sdp: entry.pc.localDescription?.sdp }) });
     } catch (e) { setStatus("ভয়েস সংযোগ তৈরি করা যায়নি। আবার চেষ্টা করুন।", "error"); }
     return;
   }
@@ -425,7 +425,7 @@ async function makeOffer(uid) {
   try {
     const offer = await entry.pc.createOffer();
     await entry.pc.setLocalDescription(offer);
-    await sendSignal(uid, { type: "offer", offer: entry.pc.localDescription });
+    await sendSignal(uid, { type: "offer", offer: (entry.pc.localDescription?.toJSON ? entry.pc.localDescription.toJSON() : { type: entry.pc.localDescription?.type, sdp: entry.pc.localDescription?.sdp }) });
   } catch (e) { entry.offerSent = false; }
 }
 

@@ -191,6 +191,9 @@ async function round(){
  else await modal(t,'পরের রাউন্ড');
  round()}
 modal('<b style="font-size:22px">🃏 শাকিল ২৯ প্রো</b><br>আপনি ও পার্টনার বনাম দুই বট।<br>যে দল আগে লক্ষ্য-পয়েন্টে পৌঁছাবে সে-ই গেম জিতবে।<br>কত পয়েন্টের গেম খেলবেন?',[['৩ পয়েন্ট',3],['৬ পয়েন্ট',6],['১০ পয়েন্ট',10]]).then(v=>{TARGET=v;round()});
+window.addEventListener("smg-game-online-start",e=>{const d=e.detail||{};if(d.game!=="card29")return;bn("🌐 অনলাইন রুম চালু হয়েছে ("+(d.code||"")+")","tr",2400);});
+window.addEventListener("smg-game-online-stop",e=>{if(e.detail?.game!=="card29")return;bn("অনলাইন রুম বন্ধ হয়েছে","",1500);});
+
 </script>
 <script type="module">
 import{initializeApp,getApps,getApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
