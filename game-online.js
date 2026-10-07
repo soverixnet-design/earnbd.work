@@ -68,7 +68,14 @@ css.textContent = `
 #smg-online-players{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;min-height:22px}
 #smg-online-players span{padding:4px 7px;border-radius:999px;background:#ffffff14;color:#e2e8f0;font-size:11px}
 #smg-online-hint{margin:9px 0 0;color:#94a3b8;font-size:10px;line-height:1.35}
+#smg-game-dock{position:fixed;left:50%;bottom:max(12px,env(safe-area-inset-bottom));z-index:190;display:flex;align-items:flex-end;justify-content:center;gap:8px;max-width:calc(100vw - 16px);transform:translateX(-50%);pointer-events:none}
+#smg-game-dock>*{pointer-events:auto}
+#smg-game-dock #smg-online{position:relative;left:auto;bottom:auto;display:flex;flex-direction:column;align-items:flex-start}
+#smg-game-dock #smg-online-panel{margin:0 0 8px}
+#smg-game-dock #smg-voice-chat{position:relative;right:auto;bottom:auto}
+#smg-game-dock #smg-vc-panel{margin:0 0 8px}
 @media(max-width:520px){#smg-online-toggle{padding:9px 11px;font-size:12px}#smg-online-panel{padding:12px}}
+@media(max-width:520px){#smg-game-dock{width:calc(100vw - 16px);gap:6px}#smg-online-panel{width:min(350px,calc(100vw - 16px))}}
 `;
 document.head.appendChild(css);
 
@@ -86,7 +93,13 @@ root.innerHTML = `
     <p id="smg-online-hint">একই সিস্টেমে code room, share-link এবং code-free matchmaking কাজ করে।</p>
   </section>
   <button id="smg-online-toggle" type="button" aria-expanded="false">🌐 অনলাইন</button>`;
-document.body.appendChild(root);
+const dock = document.getElementById("smg-game-dock") || (() => {
+  const el = document.createElement("div");
+  el.id = "smg-game-dock";
+  document.body.appendChild(el);
+  return el;
+})();
+dock.appendChild(root);
 
 const panel = $("smg-online-panel");
 const toggle = $("smg-online-toggle");
@@ -128,7 +141,15 @@ const nameOf = () => String(currentUser?.displayName || currentUser?.email?.spli
 const profileOf = () => window.smgGameGetProfile?.() || {};
 
 function setStatus(text, kind = "warn") { statusEl.textContent = text; statusEl.dataset.kind = kind; }
-function openPanel(open = true) { panel.hidden = !open; toggle.setAttribute("aria-expanded", String(open)); if (open && !currentUser) setStatus("অনলাইন রুমের জন্য আগে লগইন করুন।", "warn"); }
+function openPanel(open = true) {
+  if (open) window.dispatchEvent(new CustomEvent("smg-game-panel-open", { detail: "online" }));
+  panel.hidden = !open;
+  toggle.setAttribute("aria-expanded", String(open));
+  if (open && !currentUser) setStatus("অনলাইন রুমের জন্য আগে লগইন করুন।", "warn");
+}
+window.addEventListener("smg-game-panel-open", event => {
+  if (event.detail !== "online") openPanel(false);
+});
 function dispatch(name, detail) { window.dispatchEvent(new CustomEvent(name, { detail: { game: gameKey, ...detail } })); }
 function entry() { const p = profileOf(); return { uid: currentUser.uid, name: String(p.name || nameOf()).slice(0, 24), avatar: String(p.avatar || "👤").slice(0, 4), joinedAt: serverTimestamp(), online: true }; }
 function ensureUser() { if (currentUser) return true; openPanel(true); setStatus("অনলাইন খেলতে আগে লগইন করুন।", "error"); return false; }

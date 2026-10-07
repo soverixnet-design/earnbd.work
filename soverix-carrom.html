@@ -9,7 +9,7 @@
 html{scroll-padding-top:env(safe-area-inset-top,0px);background:#1b1464}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-body{margin:0;color:#fff;font-family:"Hind Siliguri","Noto Sans Bengali",system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;padding:10px;min-height:100vh;position:relative;overflow-x:hidden;
+body{margin:0;color:#fff;font-family:"Hind Siliguri","Noto Sans Bengali",system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;padding:10px 10px 88px;min-height:100vh;position:relative;overflow-x:hidden;
 background:radial-gradient(circle at 12% 8%,#ff7a59 0,transparent 38%),radial-gradient(circle at 90% 18%,#7b5cff 0,transparent 42%),radial-gradient(circle at 50% 105%,#00c9a7 0,transparent 48%),linear-gradient(160deg,#1b1464,#4a1d7a 55%,#8a1f5c);background-attachment:fixed}
 .bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
 .bg i{position:absolute;opacity:.85;animation:fl 9s ease-in-out infinite}
@@ -67,7 +67,7 @@ canvas{width:100%;aspect-ratio:1;border-radius:14px;touch-action:none;display:bl
 #carrom-toast{position:fixed;left:50%;bottom:10px;z-index:22;transform:translate(-50%,20px);opacity:0;pointer-events:none;padding:8px 12px;border-radius:10px;background:#422006;color:#fde68a;border:1px solid #fbbf2466;font:700 12px/1.35 system-ui,sans-serif;transition:.25s}
 #carrom-toast.on{opacity:1;transform:translate(-50%,0)}
 body{padding-top:68px}
-@media(max-width:520px){body{padding-top:62px}#carrom-shell{gap:4px;padding:5px 6px;font-size:10px}#carrom-shell strong{display:none}#carrom-shell .metric{font-size:10px}#carrom-shell a,#carrom-shell button{padding:5px 6px;font-size:10px}}
+@media(max-width:520px){body{padding-top:62px;padding-bottom:82px}#carrom-shell{gap:4px;padding:5px 6px;font-size:10px}#carrom-shell strong{display:none}#carrom-shell .metric{font-size:10px}#carrom-shell a,#carrom-shell button{padding:5px 6px;font-size:10px}}
 </style></head>
 <body><nav id="carrom-shell"><a href="index.html" aria-label="SHAKIL m game home">🏠</a><a href="index.html#policy" aria-label="গেম নীতি">🛡️</a><strong>🟠 শাকিল ক্যারাম</strong><span class="spacer"></span><span class="metric" id="carrom-rank">র‍্যাঙ্ক —</span><span class="metric" id="carrom-score">স্কোর ০</span><button id="carrom-profile-btn" type="button">👤 Guest</button><button id="carrom-login" type="button">🔐 লগইন</button></nav><section id="carrom-profile" hidden><h3>👤 প্লেয়ার প্রোফাইল</h3><div id="carrom-profile-name">Guest Player</div><div id="carrom-profile-email" style="color:#cbd5e1;margin:2px 0 10px">লগইন করলে Firebase স্কোর সিঙ্ক হবে</div><div class="grid"><div class="stat"><b id="carrom-games">০</b><small>গেম</small></div><div class="stat"><b id="carrom-wins">০</b><small>জয়</small></div><div class="stat"><b id="carrom-points">০</b><small>পয়েন্ট</small></div><div class="stat"><b id="carrom-coins">—</b><small>কয়েন</small></div></div><div id="carrom-reward" style="margin-top:9px;color:#fde68a">দৈনিক রিওয়ার্ড লগইন করলে পাওয়া যাবে।</div></section><div id="carrom-toast"></div>
 <div class="bg" aria-hidden="true"><i class="cn w" style="left:6%;top:12%;width:54px;height:54px;animation-delay:-1s;animation-duration:8s"></i><i class="cn k" style="left:82%;top:8%;width:44px;height:44px;animation-delay:-3s;animation-duration:10s"></i><i class="cn r" style="left:70%;top:34%;width:62px;height:62px;animation-delay:-5s;animation-duration:8s"></i><i class="cn b" style="left:10%;top:40%;width:48px;height:48px;animation-delay:-2s;animation-duration:9s"></i><i class="cn k" style="left:20%;top:70%;width:60px;height:60px;animation-delay:-4s;animation-duration:7s"></i><i class="cn w" style="left:78%;top:66%;width:50px;height:50px;animation-delay:-6s;animation-duration:9s"></i><i class="cn r" style="left:44%;top:88%;width:40px;height:40px;animation-delay:-7s;animation-duration:10s"></i><i class="cn b" style="left:88%;top:86%;width:56px;height:56px;animation-delay:-0s;animation-duration:7s"></i><i class="cn w" style="left:52%;top:4%;width:36px;height:36px;animation-delay:-8s;animation-duration:7s"></i></div>
@@ -414,4 +414,4 @@ new MutationObserver(()=>{show();detectResult()}).observe($("game"),{subtree:tru
 onValue(ref(db,"leaderboards"),s=>renderRank(s.val()||{}),()=>renderRank({}));
 onAuthStateChanged(auth,async u=>{user=u||null;await loadProfile();show()});
 show();
-</script><script type="module" src="voice-chat.js?game=carrom&v=voice3"></script><script type="module" src="game-online.js?game=carrom&v=online3"></script></body></html>
+</script><script type="module" src="voice-chat.js?game=carrom&v=voice4"></script><script type="module" src="game-online.js?game=carrom&v=online4"></script></body></html>

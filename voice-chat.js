@@ -11,6 +11,7 @@ import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/
 import {
   getDatabase,
   ref,
+  get,
   set,
   push,
   remove,
@@ -41,6 +42,7 @@ const gameName = ({
   chess: "দাবা 3D",
   arcade: "খেলাঘর"
 }[gameKey] || "গেম");
+const VOICE_MAX = 5;
 
 const css = document.createElement("style");
 css.textContent = `
@@ -48,7 +50,7 @@ css.textContent = `
 #smg-voice-chat *{box-sizing:border-box}
 #smg-vc-toggle{border:1px solid #ffffff38;border-radius:999px;padding:10px 14px;background:linear-gradient(135deg,#7c3aed,#2563eb);color:#fff;font:800 13px/1 system-ui,sans-serif;box-shadow:0 10px 26px #0007,0 0 18px #7c3aed66;cursor:pointer;white-space:nowrap}
 #smg-vc-toggle[data-live="true"]{background:linear-gradient(135deg,#059669,#0ea5e9);box-shadow:0 10px 26px #0007,0 0 18px #22c55e99}
-#smg-vc-panel{width:min(330px,calc(100vw - 24px));margin-top:8px;padding:14px;border:1px solid #ffffff2b;border-radius:18px;background:linear-gradient(160deg,#172554f5,#111827f5);box-shadow:0 20px 55px #000b,0 0 24px #2563eb44;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+#smg-vc-panel{width:min(350px,calc(100vw - 24px));margin-top:8px;padding:14px;border:1px solid #ffffff2b;border-radius:18px;background:linear-gradient(160deg,#172554f5,#111827f5);box-shadow:0 20px 55px #000b,0 0 24px #2563eb44;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
 #smg-vc-panel[hidden]{display:none}
 #smg-vc-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 #smg-vc-head strong{font-size:15px;flex:1;color:#fde68a}
@@ -69,11 +71,20 @@ css.textContent = `
 #smg-vc-tools button:disabled,#smg-vc-actions button:disabled{opacity:.45;cursor:not-allowed}
 #smg-vc-members{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;min-height:22px}
 #smg-vc-members span{padding:4px 7px;border-radius:999px;background:#ffffff14;color:#e2e8f0;font-size:11px}
+#smg-vc-room-count{margin-top:8px;color:#cbd5e1;font-size:11px;font-weight:800}
+#smg-vc-room-count[data-full="true"]{color:#fbbf24}
 #smg-vc-hint{margin:9px 0 0;color:#94a3b8;font-size:10px;line-height:1.35}
 #smg-vc-help{width:100%;margin-top:7px;border:1px solid #60a5fa55;border-radius:9px;padding:7px;background:#1e3a8a;color:#dbeafe;font:700 11px/1.2 system-ui,sans-serif;cursor:pointer}
 #smg-vc-helpbox{margin-top:7px;padding:8px;border-radius:9px;background:#020617aa;color:#cbd5e1;font-size:10px;line-height:1.45}
 #smg-vc-helpbox[hidden]{display:none}
+#smg-game-dock{position:fixed;left:50%;bottom:max(12px,env(safe-area-inset-bottom));z-index:190;display:flex;align-items:flex-end;justify-content:center;gap:8px;max-width:calc(100vw - 16px);transform:translateX(-50%);pointer-events:none}
+#smg-game-dock>*{pointer-events:auto}
+#smg-game-dock #smg-voice-chat{position:relative;right:auto;bottom:auto;display:flex;flex-direction:column-reverse;align-items:flex-end}
+#smg-game-dock #smg-vc-panel{margin:0 0 8px}
+#smg-game-dock #smg-online{position:relative;left:auto;bottom:auto}
+#smg-game-dock #smg-online-panel{margin:0 0 8px}
 @media(max-width:520px){#smg-vc-toggle{padding:9px 11px;font-size:12px}#smg-vc-panel{padding:12px}}
+@media(max-width:520px){#smg-game-dock{width:calc(100vw - 16px);gap:6px}#smg-vc-panel{width:min(350px,calc(100vw - 16px))}}
 `;
 document.head.appendChild(css);
 
@@ -89,12 +100,19 @@ root.innerHTML = `
     <div id="smg-vc-actions"><button id="smg-vc-join" type="button">🎙️ কোড দিয়ে যোগ দিন</button><button id="smg-vc-leave" type="button" disabled>ছেড়ে দিন</button></div>
     <button id="smg-vc-quick" type="button">⚡ কোড ছাড়া অনলাইনে খুঁজুন</button>
     <div id="smg-vc-members" aria-live="polite"></div>
+    <div id="smg-vc-room-count" aria-live="polite">0/${VOICE_MAX} জন</div>
     <div id="smg-vc-tools"><button id="smg-vc-mute" type="button" disabled>🔇 মাইক বন্ধ</button></div>
     <button id="smg-vc-help" type="button">❔ মাইক permission ঠিক করার নিয়ম</button>
     <div id="smg-vc-helpbox" hidden>Android Chrome: ঠিকানা বারের 🔒 চিহ্ন → Permissions → Microphone → Allow, তারপর পেজ Reload করুন। ফোনের Settings → Apps → Chrome → Permissions → Microphone-ও Allow থাকতে হবে।</div>
     <p id="smg-vc-hint">একই গেমে থাকা খেলোয়াড়রা একই কোড ব্যবহার করলে কথা বলতে পারবেন। মাইক্রোফোনের অনুমতি লাগবে।</p>
   </section>`;
-document.body.appendChild(root);
+const dock = document.getElementById("smg-game-dock") || (() => {
+  const el = document.createElement("div");
+  el.id = "smg-game-dock";
+  document.body.appendChild(el);
+  return el;
+})();
+dock.appendChild(root);
 
 const $ = id => document.getElementById(id);
 const toggle = $("smg-vc-toggle");
@@ -106,6 +124,7 @@ const leaveBtn = $("smg-vc-leave");
 const quickBtn = $("smg-vc-quick");
 const muteBtn = $("smg-vc-mute");
 const membersEl = $("smg-vc-members");
+const roomCountEl = $("smg-vc-room-count");
 const helpBtn = $("smg-vc-help");
 const helpBox = $("smg-vc-helpbox");
 
@@ -124,6 +143,7 @@ let voiceQueueUnsub = null;
 let voiceMatchUnsub = null;
 let voiceQueueDisconnect = null;
 let voiceMatchInFlight = false;
+let voiceQueueClaimed = false;
 const handledVoiceMatches = new Set();
 const peers = new Map();
 const remoteAudio = new Map();
@@ -144,6 +164,7 @@ async function micPermission() {
 
 function micError(e) {
   const code = String(e?.code || e?.name || "").toLowerCase();
+  if (code === "voice-room-full") return `এই ভয়েস রুমে ইতিমধ্যে ${VOICE_MAX} জন আছে। অন্য রুমে যোগ দিন।`;
   if (code.includes("permission-denied") || code.includes("permission_denied")) return "Firebase voice-room permission বন্ধ আছে। database.rules.json Firebase Realtime Database-এ deploy করুন।";
   if (code.includes("notallowed") || code.includes("securityerror")) return "মাইক্রোফোন ব্লক করা আছে। ঠিকানা বারের 🔒 → Permissions → Microphone → Allow করে পেজ Reload করুন।";
   if (code.includes("notfound")) return "এই ডিভাইসে মাইক্রোফোন পাওয়া যায়নি। ফোনের Microphone permission ও headset যাচাই করুন।";
@@ -173,11 +194,13 @@ function setStatus(text, kind = "warn") {
 }
 
 function renderMembers() {
-  const entries = Object.values(members || {}).filter(x => x && x.uid);
+  const entries = Object.values(members || {}).filter(x => x && x.uid).sort((a, b) => String(a.uid).localeCompare(String(b.uid)));
+  roomCountEl.textContent = `${entries.length}/${VOICE_MAX} জন`;
+  roomCountEl.dataset.full = String(entries.length >= VOICE_MAX);
   membersEl.innerHTML = entries.length
     ? entries.map(x => `<span>${x.uid === currentUser?.uid ? "🎙️ " : "👤 "}${String(x.name || "Player").replace(/[<>]/g, "")}</span>`).join("")
     : "";
-  if (joined) setStatus(`রুমে ${entries.length} জন · মাইক্রোফোন ${muted ? "বন্ধ" : "চালু"}`, "ok");
+  if (joined) setStatus(`ভয়েস রুমে ${entries.length}/${VOICE_MAX} জন · মাইক্রোফোন ${muted ? "বন্ধ" : "চালু"}`, "ok");
 }
 
 function updateControls() {
@@ -194,11 +217,16 @@ function updateControls() {
 }
 
 function openPanel(open) {
+  if (open) window.dispatchEvent(new CustomEvent("smg-game-panel-open", { detail: "voice" }));
   panel.hidden = !open;
   toggle.setAttribute("aria-expanded", String(open));
   if (open && !joined) roomInput.focus();
   if (open && currentUser) micPermission().then(state => { if (state === "denied") setStatus("মাইক্রোফোন permission বন্ধ আছে—নিচের নির্দেশনা দেখুন।", "error"); });
 }
+
+window.addEventListener("smg-game-panel-open", event => {
+  if (event.detail !== "voice") openPanel(false);
+});
 
 function emitRoom(raw) {
   const value = String(raw || "").trim();
@@ -260,7 +288,7 @@ function createPeer(uid) {
     }
     if (joined) {
       const connected = [...peers.values()].filter(x => x.pc.connectionState === "connected").length;
-      if (connected) setStatus(`রুমে ${Object.keys(members || {}).length} জন · ${connected}টি ভয়েস সংযোগ চালু`, "ok");
+      if (connected) setStatus(`ভয়েস রুমে ${Object.keys(members || {}).length}/${VOICE_MAX} জন · ${connected}টি সংযোগ চালু`, "ok");
     }
   };
   return entry;
@@ -335,6 +363,7 @@ const voiceQueueEntry = () => ({ uid: currentUser.uid, name: nameOf(), status: "
 
 async function stopVoiceQueue(stopMic = false) {
   voiceQueueMode = false;
+  voiceQueueClaimed = false;
   if (voiceQueueUnsub) voiceQueueUnsub();
   if (voiceMatchUnsub) voiceMatchUnsub();
   voiceQueueUnsub = voiceMatchUnsub = null;
@@ -357,16 +386,21 @@ async function processVoiceMatches(raw) {
 }
 
 async function processVoiceQueue(raw) {
-  if (!voiceQueueMode || !currentUser || voiceMatchInFlight) return;
+  if (!voiceQueueMode || voiceQueueClaimed || !currentUser || voiceMatchInFlight) return;
   const waiting = Object.values(raw || {}).filter(x => x && x.uid && x.status === "waiting").sort((a, b) => String(a.uid).localeCompare(String(b.uid)));
-  if (waiting.length < 2) { setStatus("⚡ ভয়েস ম্যাচ খোঁজা হচ্ছে · অন্য একজনের অপেক্ষা", "warn"); return; }
-  const group = waiting.slice(0, 2);
+  if (waiting.length < 2) { setStatus(`⚡ ভয়েস ম্যাচ খোঁজা হচ্ছে · ২–${VOICE_MAX} জনের অপেক্ষা`, "warn"); return; }
+  const group = waiting.slice(0, VOICE_MAX);
   if (group[0].uid !== currentUser.uid) return;
   voiceMatchInFlight = true;
   const id = `auto-${Math.floor(100000 + Math.random() * 900000)}`;
   const updates = {};
-  updates[`voiceMatchmaking/${gameKey}/matches/${id}`] = { roomId: id, users: group.map(x => x.uid), createdAt: serverTimestamp() };
-  await update(ref(db), updates).catch(() => {});
+  updates[`voiceMatchmaking/${gameKey}/matches/${id}`] = { roomId: id, maxMembers: VOICE_MAX, users: group.map(x => x.uid), createdAt: serverTimestamp() };
+  try {
+    await update(ref(db), updates);
+    voiceQueueClaimed = true;
+  } catch (e) {
+    setStatus("ভয়েস ম্যাচ তৈরি হয়নি। Firebase Rules বা নেটওয়ার্ক পরীক্ষা করুন।", "error");
+  }
   voiceMatchInFlight = false;
 }
 
@@ -378,6 +412,7 @@ async function quickVoiceMatch() {
   try {
     setStatus("মাইক্রোফোনের অনুমতি চাওয়া হচ্ছে…", "warn");
     if (!localStream) localStream = await requestMicrophone();
+    voiceQueueClaimed = false;
     voiceQueueMode = true;
     const qref = ref(db, `voiceMatchmaking/${gameKey}/queue/${currentUser.uid}`);
     await set(qref, voiceQueueEntry());
@@ -412,14 +447,32 @@ async function joinRoom() {
     joinedPath = voicePath(raw);
     const member = ref(db, `${joinedPath}/members/${currentUser.uid}`);
     const signals = ref(db, `${joinedPath}/signals/${currentUser.uid}`);
+    const beforeSnap = await get(ref(db, `${joinedPath}/members`));
+    const before = beforeSnap.val() || {};
+    const beforeEntries = Object.values(before).filter(x => x && x.uid && x.uid !== currentUser.uid);
+    if (beforeEntries.length >= VOICE_MAX) {
+      const e = new Error("Voice room is full");
+      e.code = "voice-room-full";
+      throw e;
+    }
     await set(member, { uid: currentUser.uid, name: nameOf(), avatar: avatarOf(), joinedAt: serverTimestamp(), updatedAt: serverTimestamp() });
+    // A second read closes the common race where two people join the fifth slot together.
+    const afterSnap = await get(ref(db, `${joinedPath}/members`));
+    const after = afterSnap.val() || {};
+    const afterEntries = Object.values(after).filter(x => x && x.uid).sort((a, b) => String(a.uid).localeCompare(String(b.uid)));
+    if (afterEntries.length > VOICE_MAX && !afterEntries.slice(0, VOICE_MAX).some(x => x.uid === currentUser.uid)) {
+      await remove(member).catch(() => {});
+      const e = new Error("Voice room is full");
+      e.code = "voice-room-full";
+      throw e;
+    }
     memberDisconnect = onDisconnect(member);
     await memberDisconnect.remove();
     memberUnsub = onValue(ref(db, `${joinedPath}/members`), snap => { members = snap.val() || {}; renderMembers(); syncPeers(); });
     signalUnsub = onChildAdded(signals, async snap => { const data = snap.val(); await handleSignal(data); remove(snap.ref).catch(() => {}); });
     joined = true;
     updateControls();
-    setStatus("ভয়েস রুমে যোগ হয়েছে। অন্য খেলোয়াড়ের মাইক চালু হলে কথা শোনা যাবে।", "ok");
+    setStatus(`ভয়েস রুমে যোগ হয়েছে · সর্বোচ্চ ${VOICE_MAX} জন কথা বলতে পারবেন।`, "ok");
     renderMembers();
     syncPeers();
   } catch (e) {

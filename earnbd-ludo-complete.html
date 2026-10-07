@@ -7,7 +7,7 @@
 *{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent;user-select:none}
 html,body{height:100%;overflow:hidden;font-family:system-ui,sans-serif;color:#fff;background:radial-gradient(circle at 25% 15%,#2d6bd6,#143578 55%,#091a48)}
 body{display:flex;justify-content:center;align-items:center}
-#wrap{display:flex;flex-direction:column;gap:8px;align-items:center}
+#wrap{display:flex;flex-direction:column;gap:8px;align-items:center;transform:translateY(12px)}
 .row{display:flex;justify-content:space-between;width:100%}
 .card{display:flex;align-items:center;gap:3px;padding:2px 5px;border:2px solid #f3c622;border-radius:16px;background:linear-gradient(90deg,#0b46b8,#2a7bd8);width:48%;opacity:.5;transition:.3s}
 .card.r{flex-direction:row-reverse}
@@ -129,7 +129,7 @@ for(let pl=0;pl<4;pl++){const[x,y,dx,dy]=H[pl];for(let k=0;k<5;k++)cell(x+dx*k,y
 const tri=(a,b,col)=>{g.fillStyle=col;g.beginPath();g.moveTo(a[0]*c,a[1]*c);g.lineTo(b[0]*c,b[1]*c);g.lineTo(7.5*c,7.5*c);g.fill()};
 tri([6,6],[6,9],C[0]);tri([6,6],[9,6],C[1]);tri([9,6],[9,9],C[2]);tri([6,9],[9,9],C[3]);
 [8,21,34,47].forEach(i=>star(g,(path[i][0]+.5)*c,(path[i][1]+.5)*c,c*.38))}
-function fit(){const s=Math.floor(Math.min(innerWidth-8,innerHeight-228,600));W=s;dpr=Math.min(devicePixelRatio||1,2);$('#wrap').style.width=s+'px';cv.style.width=cv.style.height=s+'px';cv.width=cv.height=bg.width=bg.height=s*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);drawBoard()}
+function fit(){const reserve=innerWidth<640?286:250;const s=Math.floor(Math.min(innerWidth-12,innerHeight-reserve,600));W=Math.max(220,s);dpr=Math.min(devicePixelRatio||1,2);$('#wrap').style.width=W+'px';cv.style.width=cv.style.height=W+'px';cv.width=cv.height=bg.width=bg.height=W*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);drawBoard()}
 // pins
 function pin0(x,y,pl,k,hl){const c=W/15*k;ctx.save();ctx.translate(x,y);ctx.fillStyle='rgba(0,0,0,.3)';ctx.beginPath();ctx.ellipse(0,0,c*.3,c*.1,0,0,7);ctx.fill();
 if(hl){ctx.strokeStyle='#fff';ctx.lineWidth=c*.1;ctx.beginPath();ctx.ellipse(0,0,c*.4,c*.15,0,0,7);ctx.stroke()}
@@ -238,4 +238,4 @@ $('#fm').onclick=()=>{if(!RM)return;SRCH=SRCH?0:1;setS(SRCH?'f':'m');$('#fm').te
 RM.presence({n:PR.n,a:PR.a,i:PR.id,s:'m'});let first=1;
 RM.onPeers(c=>{LB=c.peers.filter(p=>p.kind==='viewer');drawLB();if(!first){c.joined.forEach(p=>{if(!p.isMe)note('🔔 '+avOf(p)+' '+nmOf(p)+' অনলাইনে এসেছে')});c.updated.forEach(p=>{if(!p.isMe&&p.presence.s==='f')note('🔔 '+nmOf(p)+' খেলার জন্য খুঁজছে — আপনিও খুঁজুন!')})}first=0;mm()});
 RM.on('mm',m=>{if(m.isMe||!SRCH||OL)return;const d=m.data||{},me=LB.find(p=>p.isMe&&p.sameTab);if(me&&Array.isArray(d.t)&&d.t.includes(me.peer)&&/^\d{4}$/.test(d.c)){clearTimeout(mmT);mmT=0;enter(d.c,0)}})})();
-</script><script type="module" src="voice-chat.js?game=ludo&v=voice3"></script><script type="module" src="ludo-online.js?v=online3"></script></body></html>
+</script><script type="module" src="voice-chat.js?game=ludo&v=voice4"></script><script type="module" src="ludo-online.js?v=online4"></script></body></html>
