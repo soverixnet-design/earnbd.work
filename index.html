@@ -118,7 +118,6 @@ if(S.room){let e=$('.room');if(!e){e=document.createElement('div');document.body
 try{const d=JSON.parse(localStorage.getItem('vr3')||'null');d&&Object.assign(S,d)}catch(e){}
 S.room=null;S.cur=null;S.tab='home';
 const _r=render;render=function(){_r();try{localStorage.setItem('vr3',JSON.stringify({u:S.u,rooms:S.rooms,banner:S.banner,gifts:S.gifts,rech:S.rech,hist:S.hist,cash:S.cash,dr:S.dr,tk:S.tk.filter(x=>!x[2])}))}catch(e){}};
-render();
 
 let L=null,RR=null,RP=[],LP=[],PC={},MS=null,LV={};const sid=Math.random().toString(36).slice(2,9);
 const rs=i=>{const p=RP[i];return p&&!p.me?{n:p.n||'ইউজার',e:p.e||'🙂',m:p.m}:null};
@@ -177,4 +176,7 @@ function say(){const v=$('#ci').value.trim();if(!v)return;const r=cur();if(!io_&
 function send(i){const g=S.gifts[i];if(S.u.coin<g[2])return toast('কয়েন কম! রিচার্জ করুন');S.u.coin-=g[2];S.u.xp+=g[2];const r=cur();if(!io_&&r)r.chat.push(`🎁 ${S.u.n} পাঠালেন ${g[0]} ${g[1]}`);if(io_)io_.emit('gift',{g:g[0]+' '+g[1]});sheet();fly(g[0]);toast(g[1]+' গিফট গেছে!');render()}
 async function mic(){const r=cur();if(!r||!r.seats.some(x=>x&&x.me))return toast('আগে সিটে বসুন');if(!LK)return toast('ভয়েস সার্ভার সংযুক্ত হলে মাইক চালু হবে');
 const n=S.mic?0:1;try{await LK.localParticipant.setMicrophoneEnabled(!n);S.mic=n;if(io_)io_.emit('mute',n);toast(n?'🔇 মাইক বন্ধ':'🎤 মাইক চালু')}catch(e){toast('মাইক permission দিন, তারপর আবার চাপুন')}render()}
+if(io_)io_.on('kicked',()=>{leaveVoice();S.room=null;toast('রুমের মালিক আপনাকে বের করেছেন');render()});
+if(io_)io_.on('blocked',()=>{leaveVoice();S.room=null;toast('এই রুমে আপনাকে ব্লক করা হয়েছে');render()});
+render();
 </script></body></html>
