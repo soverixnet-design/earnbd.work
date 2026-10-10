@@ -255,11 +255,16 @@
       var u = $('[data-sb-user]', dock);
       if (u) u.textContent = ACCOUNT ? '👤 ' + userName() : '🔐 লগইন';
     }
+    var balance = fmt(walletBalance());
+    $all('[data-room-wallet]').forEach(function (el) { el.textContent = '🪙 ' + balance; });
+    $all('[data-sb-wallet-balance]').forEach(function (el) { el.textContent = balance + ' 🪙'; });
+    $all('[data-sb-game-balance],[data-sb-gift-balance]').forEach(function (el) { el.textContent = balance; });
   }
 
   function gameBridgeScript(nativeWallet) {
     var genericSpend = nativeWallet ? '' : 'document.addEventListener("pointerdown",function(e){var t=e.target&&e.target.closest&&e.target.closest("button,.dice,#cv,#roll,#shoot");if(!t||!b||Date.now()-last<350)return;last=Date.now();b=Math.max(0,b-10);out()},{capture:true});';
-    return '<script>(function(){var b=0,last=0,won=0;function out(){try{parent.postMessage({type:"shakil-wallet",balance:b},"*")}catch(_){}}addEventListener("message",function(e){var d=e.data||{};if(d.type==="setBalance"&&Number.isFinite(+d.balance)){b=Math.max(0,Math.floor(+d.balance));out()}});' + genericSpend + 'var o=new MutationObserver(function(){var t=(document.body.innerText||"").toLowerCase();if(!won&&/(winner|you win|won|জিতেছে)/i.test(t)){won=1;b+=50;out()}});o.observe(document.body,{subtree:true,childList:true,characterData:true})})()<\\/script>';
+    var genericOutcome = nativeWallet ? '' : 'var o=new MutationObserver(function(){var t=(document.body.innerText||"").toLowerCase();if(!won&&/(winner|you win|won|জিতেছে)/i.test(t)){won=1;b+=50;out()}});o.observe(document.body,{subtree:true,childList:true,characterData:true});';
+    return '<script>(function(){var b=0,last=0,won=0;function out(){try{parent.postMessage({type:"shakil-wallet",balance:b},"*")}catch(_){}}addEventListener("message",function(e){var d=e.data||{};if(d.type==="setBalance"&&Number.isFinite(+d.balance)){b=Math.max(0,Math.floor(+d.balance));out()}});' + genericSpend + genericOutcome + '})()<\\/script>';
   }
   function launchGame(id) {
     var meta = GAME_META.find(function (g) { return g.id === id; });
@@ -337,7 +342,7 @@
   }
   function walletPanel(options) {
     var reqs = (state.requests || []).slice(0, 5).map(function (r) { return '<div class="sb-room"><div class="sb-room-copy"><b>' + fmt(r.amount) + ' coins</b><small>' + esc(r.time || '') + ' · ' + esc(r.status || 'pending') + '</small></div></div>'; }).join('');
-    var view = panel('💰 Virtual Wallet', '<div class="sb-card"><div class="sb-muted">GAME + GIFT WALLET</div><div class="sb-balance">' + fmt(walletBalance()) + ' 🪙</div><div class="sb-muted">এই balance গেম খেলা ও gift পাঠানো—দুই জায়গাতেই ব্যবহার হবে এবং refresh-এর পরও থাকবে।</div><div class="sb-row" style="margin-top:12px"><button class="sb-btn" data-daily>🎁 Daily reward</button><button class="sb-btn alt" data-request>📝 Coin request</button></div></div><div class="sb-card"><b>📊 Display-only coin rate</b><div class="sb-rate">' + fmt(COIN_RATE) + ' virtual coins = $1</div><p class="sb-muted">এই rate শুধু হিসাব দেখায়। coin বিক্রি, টাকা জমা, বাজি বা cash-out চালু নেই।</p></div><div class="sb-card"><b>📝 আমার coin requests</b>' + (reqs || '<p class="sb-muted">এখনো কোনো request নেই।</p>') + '</div><div class="sb-card"><b>📒 Virtual ledger</b>' + ((state.history || []).map(function (x) { return '<p class="sb-muted" style="margin:5px 0">' + esc(x) + '</p>'; }).join('') || '<p class="sb-muted">এখনো কোনো লেনদেন নেই।</p>') + '</div>', options);
+    var view = panel('💰 Virtual Wallet', '<div class="sb-card"><div class="sb-muted">GAME + GIFT WALLET</div><div class="sb-balance" data-sb-wallet-balance>' + fmt(walletBalance()) + ' 🪙</div><div class="sb-muted">এই balance গেম খেলা ও gift পাঠানো—দুই জায়গাতেই ব্যবহার হবে এবং refresh-এর পরও থাকবে।</div><div class="sb-row" style="margin-top:12px"><button class="sb-btn" data-daily>🎁 Daily reward</button><button class="sb-btn alt" data-request>📝 Coin request</button></div></div><div class="sb-card"><b>📊 Display-only coin rate</b><div class="sb-rate">' + fmt(COIN_RATE) + ' virtual coins = $1</div><p class="sb-muted">এই rate শুধু হিসাব দেখায়। coin বিক্রি, টাকা জমা, বাজি বা cash-out চালু নেই।</p></div><div class="sb-card"><b>📝 আমার coin requests</b>' + (reqs || '<p class="sb-muted">এখনো কোনো request নেই।</p>') + '</div><div class="sb-card"><b>📒 Virtual ledger</b>' + ((state.history || []).map(function (x) { return '<p class="sb-muted" style="margin:5px 0">' + esc(x) + '</p>'; }).join('') || '<p class="sb-muted">এখনো কোনো লেনদেন নেই।</p>') + '</div>', options);
     $('[data-daily]', view).addEventListener('click', dailyReward);
     $('[data-request]', view).addEventListener('click', requestCoins);
   }
