@@ -1,0 +1,18 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /players/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.freeCoins is int
+        && request.resource.data.freeCoins >= 0
+        && request.resource.data.coin is int
+        && request.resource.data.coin >= 0
+        && request.resource.data.dia is int
+        && request.resource.data.dia >= 0;
+      allow delete: if false;
+    }
+  }
+}

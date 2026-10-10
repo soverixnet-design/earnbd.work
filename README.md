@@ -1,6 +1,11 @@
 # SHAKIL m game
 
-নতুন homepage হলো `index.html`—এখানে Voice Lounge, profile, room list, chat, gifts, wallet demo, ranking এবং embedded Ludo/Carrom game আছে। পুরনো root website files সরানো হয়েছে; rollback-এর জন্য আগের commit/backup branch রাখা আছে।
+নতুন homepage হলো `index.html`—এখানে Voice Lounge, profile, room list, chat, gifts, wallet demo, ranking এবং ছয়টি লোকাল গেম আছে: Ludo, Carrom, Night Food Wheel, Singh Food Wheel, Slots ও Jackpot Fruit। নতুন চারটি গেম `games/` ফোল্ডারে রাখা হয়েছে; কোনো Claude/artifact লিংকের ওপর নির্ভর করে না।
+
+## Login and game balance
+
+Firebase Email/Password login থাকলে profile ও game statistics Firestore-এ sync করার চেষ্টা করে; Firebase unavailable হলে local guest fallback থাকে। নতুন guest/account-এ `100,000,000` free-play coins থাকে। এগুলো virtual এবং cash-out বা real-money wagering-এর জন্য নয়। Gift/store coins আলাদা রাখা হয়েছে।
+`firestore.rules`-এ user-only profile access-এর baseline rules আছে; Firebase Console/CLI থেকে rules publish করার পর cloud sync চালু হবে।
 
 ## Live voice room
 
@@ -23,7 +28,7 @@ LiveKit credentials না থাকলে homepage-এর offline demo rooms/ga
 - Health check: `/healthz`
 - Environment: `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`, `CORS_ORIGIN`
 
-Owner room lock, kick এবং block করতে পারে। Room state বর্তমানে process memory-তে থাকে; server restart হলে room list reset হয়। স্থায়ী login, wallet এবং admin data-এর জন্য আলাদা authenticated database pass লাগবে।
+Owner room lock, kick এবং block করতে পারে। Room state বর্তমানে process memory-তে থাকে; server restart হলে room list reset হয়। স্থায়ী voice-room state, wallet ledger এবং admin data-এর জন্য authenticated database/backend pass লাগবে।
 
 ## Security
 
