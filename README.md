@@ -1,6 +1,15 @@
 # SHAKIL m game
 
-নতুন homepage হলো `index.html`—এখানে Voice Lounge, profile, room list, chat, gifts, virtual wallet, ranking, Agency/Admin/BD policy এবং ছয়টি লোকাল গেম আছে: Ludo, Carrom, Night Food Wheel, Singh Food Wheel, Slots ও Jackpot Fruit। প্রতিটি গেমের নিজস্ব SVG logo `assets/game-logos/`-এ রাখা হয়েছে; নতুন চারটি গেম `games/` ফোল্ডারে রাখা হয়েছে; কোনো Claude/artifact লিংকের ওপর নির্ভর করে না। সাধারণ ইউজার স্ক্রিনে admin panel দেখানো হয় না।
+নতুন homepage হলো দেওয়া `shakil_x5f_game_x5f_voice_x5f_party.html`-এর design shell—পুরনো homepage layout সরিয়ে `index.html`-এ সেটি রাখা হয়েছে। `assets/shakil-bridge.js` এই shell-এর ভেতরে কার্যকর Games, Voice Rooms, Login/Profile, Wallet, Ranking এবং policy controls বসায়। সাধারণ ইউজার স্ক্রিনে admin panel দেখানো হয় না।
+
+ছয়টি লোকাল গেম একই design-এর Games dock থেকে খোলে: Ludo, Carrom, Night Food Wheel, Singh Food Wheel, Slots ও Jackpot Fruit। প্রতিটির নিজস্ব SVG logo `assets/game-logos/`-এ আছে; গেমের ফাইল `games/`-এ। কোনো Claude/artifact link-এর ওপর game launch নির্ভর করে না।
+
+## কীভাবে চালু/যোগ করবেন
+
+1. এই repository-র `main` branch-ই hosting source রাখুন—root `index.html` বদলাবেন না; নতুন game যোগ করতে `games/<game>.html`, `assets/game-logos/<game>.svg` এবং `assets/shakil-bridge.js`-এর `GAME_META`-তে একটি entry যোগ করুন।
+2. Firebase Console-এ Email/Password sign-in চালু করুন এবং `firestore.rules` publish করুন; client config bridge-এ আগে থেকেই আছে।
+3. পাঁচ-seat online voice চালাতে `voice-room-server/` আলাদা Node host-এ deploy করে URL-টি `?voiceServer=https://YOUR-SERVICE.example.com` হিসেবে homepage-এ দিন। LiveKit variables না থাকলে demo room দেখা যাবে, কিন্তু real voice হবে না।
+4. GitHub-এ commit/publish হওয়ার পর `https://earnbd.work/` থেকে নতুন shell দেখা যাবে।
 
 ## Login and game balance
 
