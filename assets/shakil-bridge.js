@@ -7,12 +7,12 @@
   'use strict';
 
   var GAME_META = [
-    { id: 'ludo', name: 'লুডো কিং', type: 'বোর্ড গেম', logo: 'assets/game-logos/ludo.svg', file: 'games/ludo.html' },
-    { id: 'carrom', name: 'ক্যারাম', type: 'বোর্ড গেম', logo: 'assets/game-logos/carrom.svg', file: 'games/carrom.html' },
-    { id: 'nightFoodWheel', name: 'নাইট ফুড হুইল', type: 'ফ্রি-প্লে', logo: 'assets/game-logos/night-food-wheel.svg', file: 'games/night-food-wheel.html' },
-    { id: 'singhFoodWheel', name: 'সিংহ ফুড হুইল', type: 'ফ্রি-প্লে', logo: 'assets/game-logos/singh-food-wheel.svg', file: 'games/singh-food-wheel.html' },
-    { id: 'slots', name: 'স্লটস', type: 'ফ্রি-প্লে', logo: 'assets/game-logos/slots.svg', file: 'games/slots.html' },
-    { id: 'jackpotFruit', name: 'জ্যাকপট ফ্রুট', type: 'ফ্রি-প্লে', logo: 'assets/game-logos/jackpot-fruit.svg', file: 'games/jackpot-fruit.html' }
+    { id: 'ludo', name: 'লুডো কিং', type: 'বোর্ড গেম', logo: 'assets/game-logos/ludo.svg', file: 'games/ludo.html', nativeWallet: false },
+    { id: 'carrom', name: 'ক্যারাম', type: 'বোর্ড গেম', logo: 'assets/game-logos/carrom.svg', file: 'games/carrom.html', nativeWallet: false },
+    { id: 'nightFoodWheel', name: 'নাইট ফুড হুইল', type: 'ফ্রি-প্লে', logo: 'assets/game-logos/night-food-wheel.svg', file: 'games/night-food-wheel.html', nativeWallet: true },
+    { id: 'singhFoodWheel', name: 'সিংহ ফুড হুইল', type: 'ফ্রি-প্লে', logo: 'assets/game-logos/singh-food-wheel.svg', file: 'games/singh-food-wheel.html', nativeWallet: true },
+    { id: 'slots', name: 'স্লটস', type: 'ফ্রি-প্লে', logo: 'assets/game-logos/slots.svg', file: 'games/slots.html', nativeWallet: true },
+    { id: 'jackpotFruit', name: 'জ্যাকপট ফ্রুট', type: 'ফ্রি-প্লে', logo: 'assets/game-logos/jackpot-fruit.svg', file: 'games/jackpot-fruit.html', nativeWallet: true }
   ];
   var GIFTS = [
     { id: 'rose', name: 'Rose', emoji: '🌹', price: 10, color: '#ff4d6d' },
@@ -45,6 +45,7 @@
   var livekitRoom = null;
   var localAudio = null;
   var activeGame = '';
+  var gameWalletReady = false;
   var panelRoot = null;
   var playerUnsubscribe = null;
 
@@ -256,19 +257,22 @@
     }
   }
 
-  function gameBridgeScript() {
-    return '<script>(function(){var b=0,last=0,won=0;function out(){try{parent.postMessage({type:"shakil-wallet",balance:b},"*")}catch(_){}}addEventListener("message",function(e){var d=e.data||{};if(d.type==="setBalance"&&Number.isFinite(+d.balance)){b=Math.max(0,Math.floor(+d.balance));out()}});document.addEventListener("pointerdown",function(e){var t=e.target&&e.target.closest&&e.target.closest("button,.dice,#cv,#roll,#shoot");if(!t||!b||Date.now()-last<350)return;last=Date.now();b=Math.max(0,b-10);out()},{capture:true});var o=new MutationObserver(function(){var t=(document.body.innerText||"").toLowerCase();if(!won&&/(winner|you win|won|জিতেছে)/i.test(t)){won=1;b+=50;out()}});o.observe(document.body,{subtree:true,childList:true,characterData:true})})()<\\/script>';
+  function gameBridgeScript(nativeWallet) {
+    var genericSpend = nativeWallet ? '' : 'document.addEventListener("pointerdown",function(e){var t=e.target&&e.target.closest&&e.target.closest("button,.dice,#cv,#roll,#shoot");if(!t||!b||Date.now()-last<350)return;last=Date.now();b=Math.max(0,b-10);out()},{capture:true});';
+    return '<script>(function(){var b=0,last=0,won=0;function out(){try{parent.postMessage({type:"shakil-wallet",balance:b},"*")}catch(_){}}addEventListener("message",function(e){var d=e.data||{};if(d.type==="setBalance"&&Number.isFinite(+d.balance)){b=Math.max(0,Math.floor(+d.balance));out()}});' + genericSpend + 'var o=new MutationObserver(function(){var t=(document.body.innerText||"").toLowerCase();if(!won&&/(winner|you win|won|জিতেছে)/i.test(t)){won=1;b+=50;out()}});o.observe(document.body,{subtree:true,childList:true,characterData:true})})()<\\/script>';
   }
   function launchGame(id) {
     var meta = GAME_META.find(function (g) { return g.id === id; });
     if (!meta) return;
     activeGame = id;
+    gameWalletReady = false;
     var view = panel('🎮 ' + meta.name, '<div class="sb-frame-wrap"><iframe class="sb-game-frame" id="sb-game-frame" sandbox="allow-scripts allow-same-origin allow-forms allow-modals" title="' + esc(meta.name) + '"></iframe><span class="sb-frame-badge">🪙 wallet balance: <span data-sb-game-balance>' + fmt(walletBalance()) + '</span></span></div>', { keepRoom: !!currentRoom });
     var frame = $('#sb-game-frame', view);
     fetch(meta.file).then(function (r) { return r.text(); }).then(function (html) {
-      frame.srcdoc = html.replace('</body>', gameBridgeScript() + '</body>');
+      frame.srcdoc = html.replace('</body>', gameBridgeScript(!!meta.nativeWallet) + '</body>');
     }).catch(function () { frame.src = meta.file; });
     frame.addEventListener('load', function () {
+      gameWalletReady = true;
       try { frame.contentWindow.postMessage({ type: 'setBalance', balance: walletBalance() }, '*'); } catch (_) {}
     });
   }
@@ -482,7 +486,10 @@
   }
   function start() {
     installStyle(); installDock(); interceptDesignButtons(); setupFirebase();
-    window.addEventListener('message', function (e) { var d = e.data || {}; if (d.type === 'shakil-wallet' && Number.isFinite(+d.balance)) recordGame(+d.balance); });
+    window.addEventListener('message', function (e) {
+      var d = e.data || {};
+      if (activeGame && gameWalletReady && (d.type === 'shakil-wallet' || d.type === 'wallet') && Number.isFinite(+d.balance)) recordGame(+d.balance);
+    });
     window.addEventListener('storage', function (e) {
       if (e.key !== 'shakil_shell_state_v1' || !e.newValue) return;
       try { var incoming = JSON.parse(e.newValue); if (incoming && incoming.user) { state = incoming; normalizeWalletState(state); refreshIdentity(); } } catch (_) {}
