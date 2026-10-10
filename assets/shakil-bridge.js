@@ -14,6 +14,16 @@
     { id: 'slots', name: 'স্লটস', type: 'ফ্রি-প্লে', logo: 'assets/game-logos/slots.svg', file: 'games/slots.html' },
     { id: 'jackpotFruit', name: 'জ্যাকপট ফ্রুট', type: 'ফ্রি-প্লে', logo: 'assets/game-logos/jackpot-fruit.svg', file: 'games/jackpot-fruit.html' }
   ];
+  var GIFTS = [
+    { id: 'rose', name: 'Rose', emoji: '🌹', price: 10, color: '#ff4d6d' },
+    { id: 'heart', name: 'Heart', emoji: '💖', price: 50, color: '#ff3b82' },
+    { id: 'coffee', name: 'Coffee', emoji: '☕', price: 30, color: '#d69e2e' },
+    { id: 'mic', name: 'Mic', emoji: '🎤', price: 100, color: '#7c4dff' },
+    { id: 'diamond', name: 'Diamond', emoji: '💎', price: 200, color: '#00e5ff' },
+    { id: 'car', name: 'Car', emoji: '🏎️', price: 500, color: '#ffd60a' },
+    { id: 'crown', name: 'Crown', emoji: '👑', price: 1000, color: '#ffb800' },
+    { id: 'rocket', name: 'Rocket', emoji: '🚀', price: 750, color: '#7c4dff' }
+  ];
 
   var FIREBASE_CONFIG = {
     apiKey: 'AIzaSyCMwXWSbbFRTHcKx9nixhAg7hHvk-6yr-Y',
@@ -36,6 +46,9 @@
   var localAudio = null;
   var activeGame = '';
   var panelRoot = null;
+  var playerUnsubscribe = null;
+
+  normalizeWalletState(state);
 
   function $(s, root) { return (root || document).querySelector(s); }
   function $all(s, root) { return Array.prototype.slice.call((root || document).querySelectorAll(s)); }
@@ -48,6 +61,28 @@
   function userName() { return state.user && state.user.name ? state.user.name : 'Guest'; }
   function userAvatar() { return state.user && state.user.avatar ? state.user.avatar : '😎'; }
   function todayKey() { return new Date().toISOString().slice(0, 10); }
+
+  function normalizeWalletState(target) {
+    if (!target || !target.user) return;
+    var coin = Number(target.user.coin);
+    var free = Number(target.user.freeCoins);
+    var coinValid = Number.isFinite(coin);
+    var freeValid = Number.isFinite(free);
+    var balance = coinValid || freeValid ? Math.max(coinValid ? coin : 0, freeValid ? free : 0) : 100000000;
+    balance = Math.max(0, Math.floor(balance));
+    target.user.coin = balance;
+    target.user.freeCoins = balance;
+  }
+  function walletBalance() {
+    normalizeWalletState(state);
+    return Number(state.user.coin) || 0;
+  }
+  function setWalletBalance(value) {
+    var balance = Math.max(0, Math.floor(Number(value) || 0));
+    state.user.coin = balance;
+    state.user.freeCoins = balance;
+    return balance;
+  }
 
   function loadState() {
     var fallback = {
@@ -70,8 +105,13 @@
     return fallback;
   }
   function saveState() {
-    try { localStorage.setItem('shakil_shell_state_v1', JSON.stringify(state)); } catch (_) {}
+    normalizeWalletState(state);
+    persistLocalState();
     saveCloud();
+    refreshIdentity();
+  }
+  function persistLocalState() {
+    try { localStorage.setItem('shakil_shell_state_v1', JSON.stringify(state)); } catch (_) {}
     refreshIdentity();
   }
   function accountKey(uid) { return 'shakil_account_' + uid; }
@@ -84,16 +124,18 @@
       FS = firebase.firestore();
       FB.onAuthStateChanged(function (user) {
         ACCOUNT = user || null;
+        if (playerUnsubscribe) { playerUnsubscribe(); playerUnsubscribe = null; }
         if (user) hydrateAccount(user);
         else refreshIdentity();
       });
     } catch (_) { FB = null; FS = null; }
   }
   function cloudPayload() {
+    normalizeWalletState(state);
     return {
       n: userName(), id: state.user.id, email: state.user.email || '', avatar: userAvatar(),
-      coin: Math.max(0, Math.floor(Number(state.user.coin) || 0)),
-      freeCoins: Math.max(0, Math.floor(Number(state.user.freeCoins) || 0)),
+      coin: walletBalance(),
+      freeCoins: walletBalance(),
       dia: Math.max(0, Math.floor(Number(state.user.dia) || 0)), xp: Math.max(0, Math.floor(Number(state.user.xp) || 0)),
       gameStats: state.user.gameStats || {}, coinRequests: (state.requests || []).slice(0, 20),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -115,17 +157,25 @@
   function hydrateAccount(user) {
     var local = null;
     try { local = JSON.parse(localStorage.getItem(accountKey(user.uid) || 'null')); } catch (_) {}
-    var apply = function (data) {
+    var apply = function (data, persistCloud) {
       data = data || local || {};
       state.user = Object.assign(state.user, data, {
         name: data.n || user.displayName || user.email.split('@')[0] || 'ইউজার',
         email: user.email || '', id: user.uid.slice(0, 12)
       });
       if (Array.isArray(data.coinRequests)) state.requests = data.coinRequests.slice(0, 20);
-      saveState();
+      normalizeWalletState(state);
+      if (persistCloud) saveState(); else persistLocalState();
     };
-    if (FS) FS.collection('players').doc(user.uid).get().then(function (snap) { apply(snap.exists ? snap.data() : null); }).catch(function () { apply(null); });
-    else apply(null);
+    if (FS) {
+      FS.collection('players').doc(user.uid).get().then(function (snap) {
+        apply(snap.exists ? snap.data() : null, true);
+        playerUnsubscribe = FS.collection('players').doc(user.uid).onSnapshot(function (live) {
+          if (!live.exists || !ACCOUNT || ACCOUNT.uid !== user.uid) return;
+          apply(live.data(), false);
+        }, function () {});
+      }).catch(function () { apply(null, true); });
+    } else apply(null, true);
   }
   function loginIn(email, password, message) {
     if (!FB) return message('Firebase connection পাওয়া যায়নি। Guest mode চালু আছে।');
@@ -140,8 +190,9 @@
   }
   function logout() {
     if (FB) FB.signOut().catch(function () {});
+    if (playerUnsubscribe) { playerUnsubscribe(); playerUnsubscribe = null; }
     ACCOUNT = null;
-    state.user = { name: 'Guest', id: 'guest-' + Math.random().toString(36).slice(2, 8), avatar: '😎', coin: 1000, freeCoins: 100000000, dia: 0, xp: 0, gameStats: {} };
+    state.user = { name: 'Guest', id: 'guest-' + Math.random().toString(36).slice(2, 8), avatar: '😎', coin: 100000000, freeCoins: 100000000, dia: 0, xp: 0, gameStats: {} };
     saveState(); closePanel(); notice('লগআউট হয়েছে');
   }
 
@@ -150,6 +201,7 @@
     var style = document.createElement('style');
     style.id = 'shakil-bridge-style';
     style.textContent = `
+      #shakil-bridge-top-games{position:fixed;left:14px;top:calc(14px + env(safe-area-inset-top));z-index:70;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:9px 13px;color:#fff;background:linear-gradient(135deg,#7c4dff,#00bcd4);font-size:12px;font-weight:900;box-shadow:0 8px 24px #0008,0 0 18px #7c4dff55;backdrop-filter:blur(14px)}
       #shakil-bridge-dock{position:fixed;right:12px;bottom:86px;z-index:60;display:flex;gap:6px;padding:6px;border-radius:18px;background:rgba(18,18,30,.9);border:1px solid rgba(255,255,255,.1);box-shadow:0 10px 30px #0008;backdrop-filter:blur(14px)}
       #shakil-bridge-dock button{border:0;color:#fff;background:linear-gradient(135deg,#7c4dff,#00bcd4);border-radius:13px;padding:8px 10px;font-size:11px;font-weight:800;box-shadow:0 5px 16px #7c4dff55}
       #shakil-bridge-dock button:last-child{background:linear-gradient(135deg,#ff4d6d,#7c4dff)}
@@ -157,7 +209,7 @@
       .sb-panel{width:min(580px,100%);max-height:94dvh;overflow:auto;border:1px solid rgba(255,255,255,.12);border-bottom:0;border-radius:28px 28px 0 0;background:linear-gradient(155deg,#1d1b32,#101018 78%);box-shadow:0 -15px 50px #000b;color:#fff;padding:18px 16px calc(22px + env(safe-area-inset-bottom))}
       .sb-head{display:flex;align-items:center;gap:10px;margin-bottom:15px}.sb-head h2{font-size:18px;font-weight:900;flex:1;margin:0}.sb-close{width:34px;height:34px;border:0;border-radius:50%;background:#ffffff12;color:#fff;font-size:18px}
       .sb-muted{color:rgba(255,255,255,.5);font-size:12px}.sb-card{border:1px solid rgba(255,255,255,.08);border-radius:18px;background:#181824;padding:14px;margin:10px 0}.sb-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.sb-game{border:1px solid rgba(255,255,255,.08);border-radius:18px;background:linear-gradient(145deg,#23213b,#141420);padding:11px;text-align:left;color:#fff;min-height:136px}.sb-game img{width:52px;height:52px;border-radius:15px;margin-bottom:7px;box-shadow:0 7px 14px #0008}.sb-game b{display:block;font-size:13px}.sb-game small{display:block;color:rgba(255,255,255,.48);margin-top:3px;font-size:10px}.sb-btn{border:0;border-radius:14px;padding:11px 13px;color:#fff;background:linear-gradient(135deg,#7c4dff,#5b2eff);font-weight:800;font-size:12px}.sb-btn.alt{background:#ffffff12;border:1px solid rgba(255,255,255,.1)}.sb-btn.cyan{background:linear-gradient(135deg,#00bcd4,#00e5ff);color:#081018}.sb-btn.red{background:linear-gradient(135deg,#ff4d6d,#c52255)}.sb-row{display:flex;gap:8px;flex-wrap:wrap}.sb-row>*{flex:1}.sb-input{width:100%;height:44px;border-radius:13px;border:1px solid rgba(255,255,255,.12);background:#0d0d15;color:#fff;padding:0 12px;outline:none}.sb-input:focus{border-color:#7c4dff}.sb-balance{font-size:36px;font-weight:950;letter-spacing:-1px}.sb-rate{font-size:18px;color:#fcd34d;font-weight:900;margin-top:5px}.sb-list{display:grid;gap:8px}.sb-room{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid rgba(255,255,255,.07);border-radius:16px;background:#181824;color:#fff;text-align:left}.sb-room .sb-room-copy{flex:1;min-width:0}.sb-room b{font-size:13px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sb-room small{display:block;color:rgba(255,255,255,.48);font-size:10px;margin-top:3px}.sb-room .sb-join{flex:none;padding:8px 10px}.sb-seats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.sb-seat{min-width:0;text-align:center;border:1px solid rgba(255,255,255,.08);border-radius:15px;background:#181824;padding:9px 4px;color:#fff;font-size:10px}.sb-seat.me{border-color:#00e5ff;box-shadow:0 0 14px #00e5ff33}.sb-seat .sb-avatar{width:40px;height:40px;border-radius:13px;margin:0 auto 5px;display:grid;place-items:center;background:linear-gradient(135deg,#7c4dff,#00bcd4);font-size:22px}.sb-seat.empty .sb-avatar{background:#ffffff08;color:rgba(255,255,255,.4)}.sb-chat{height:180px;overflow:auto;padding:10px;border-radius:15px;background:#0c0c13;border:1px solid rgba(255,255,255,.07);font-size:12px}.sb-chat p{margin:6px 0;color:rgba(255,255,255,.74)}.sb-chat strong{color:#00e5ff}.sb-game-frame{width:100%;height:min(76dvh,720px);border:0;border-radius:18px;background:#050507}.sb-frame-wrap{position:relative}.sb-frame-badge{position:absolute;left:10px;bottom:10px;z-index:2;padding:5px 8px;border-radius:10px;background:#000b;color:#ffd54a;font-size:10px}.sb-error{padding:12px;border-radius:14px;background:#ff4d6d18;border:1px solid #ff4d6d44;color:#ffb8c4;font-size:12px}.sb-nav-name{font-size:10px;color:rgba(255,255,255,.45);margin-left:7px}
-      @media(max-width:420px){#shakil-bridge-dock{left:10px;right:10px;justify-content:center}.sb-game{min-height:128px}.sb-seats{gap:5px}.sb-seat{font-size:9px;padding:7px 2px}}
+      @media(max-width:420px){#shakil-bridge-top-games{left:10px;top:calc(10px + env(safe-area-inset-top));padding:8px 11px}#shakil-bridge-dock{left:10px;right:10px;justify-content:center}.sb-game{min-height:128px}.sb-seats{gap:5px}.sb-seat{font-size:9px;padding:7px 2px}}
     `;
     document.head.appendChild(style);
   }
@@ -172,12 +224,13 @@
     document.body.appendChild(n);
     setTimeout(function () { if (n.parentNode) n.remove(); }, 2200);
   }
-  function panel(title, body) {
+  function panel(title, body, options) {
     closePanel();
     var overlay = document.createElement('div');
     overlay.id = 'shakil-bridge-overlay';
+    if (options && options.keepRoom) overlay.dataset.keepRoom = '1';
     overlay.innerHTML = '<section class="sb-panel"><div class="sb-head"><h2>' + title + '</h2><button class="sb-close" data-sb-close>×</button></div><div data-sb-body>' + body + '</div></section>';
-    overlay.addEventListener('click', function (e) { if (e.target === overlay || e.target.closest('[data-sb-close]')) { leaveCurrentRoom(); closePanel(); } });
+    overlay.addEventListener('click', function (e) { if (e.target === overlay || e.target.closest('[data-sb-close]')) { if (overlay.dataset.keepRoom !== '1') leaveCurrentRoom(); closePanel(); } });
     document.body.appendChild(overlay);
     panelRoot = overlay;
     return overlay;
@@ -210,27 +263,27 @@
     var meta = GAME_META.find(function (g) { return g.id === id; });
     if (!meta) return;
     activeGame = id;
-    var view = panel('🎮 ' + meta.name, '<div class="sb-frame-wrap"><iframe class="sb-game-frame" id="sb-game-frame" sandbox="allow-scripts allow-same-origin allow-forms allow-modals" title="' + esc(meta.name) + '"></iframe><span class="sb-frame-badge">🪙 ফ্রি-প্লে ব্যালেন্স: <span data-sb-game-balance>' + fmt(state.user.freeCoins) + '</span></span></div>');
+    var view = panel('🎮 ' + meta.name, '<div class="sb-frame-wrap"><iframe class="sb-game-frame" id="sb-game-frame" sandbox="allow-scripts allow-same-origin allow-forms allow-modals" title="' + esc(meta.name) + '"></iframe><span class="sb-frame-badge">🪙 wallet balance: <span data-sb-game-balance>' + fmt(walletBalance()) + '</span></span></div>', { keepRoom: !!currentRoom });
     var frame = $('#sb-game-frame', view);
     fetch(meta.file).then(function (r) { return r.text(); }).then(function (html) {
       frame.srcdoc = html.replace('</body>', gameBridgeScript() + '</body>');
     }).catch(function () { frame.src = meta.file; });
     frame.addEventListener('load', function () {
-      try { frame.contentWindow.postMessage({ type: 'setBalance', balance: state.user.freeCoins }, '*'); } catch (_) {}
+      try { frame.contentWindow.postMessage({ type: 'setBalance', balance: walletBalance() }, '*'); } catch (_) {}
     });
   }
-  function gamePanel() {
+  function gamePanel(options) {
     var cards = GAME_META.map(function (g) {
       return '<button class="sb-game" data-game="' + g.id + '"><img src="' + g.logo + '" alt="' + esc(g.name) + ' logo"><b>' + esc(g.name) + '</b><small>' + esc(g.type) + ' · Tap to play</small></button>';
     }).join('');
-    var view = panel('🎮 SHAKIL m game', '<p class="sb-muted">তোমার ছয়টি গেম একই নতুন ডিজাইনের ভিতর থেকে খুলবে।</p><div class="sb-grid">' + cards + '</div>');
+    var view = panel('🎮 SHAKIL m game', '<p class="sb-muted">গেমগুলো এখন শুধু Games button বা room-এর ভেতর থেকে খুলবে। সব game ও gift একই virtual wallet balance ব্যবহার করে।</p><div class="sb-grid">' + cards + '</div>', options);
     $all('[data-game]', view).forEach(function (b) { b.addEventListener('click', function () { launchGame(b.dataset.game); }); });
   }
   function recordGame(next) {
-    var previous = Number(state.user.freeCoins) || 0;
+    var previous = walletBalance();
     next = Math.max(0, Math.floor(Number(next) || 0));
     if (next === previous) return;
-    state.user.freeCoins = next;
+    setWalletBalance(next);
     var st = state.user.gameStats[activeGame] || { played: 0, wins: 0, losses: 0, points: 0 };
     st.played += 1;
     if (next > previous) { st.wins += 1; st.points += Math.min(100, Math.floor((next - previous) / 1000) + 1); }
@@ -240,6 +293,29 @@
     state.history = state.history.slice(0, 40);
     saveState();
     var b = panelRoot && $('[data-sb-game-balance]', panelRoot); if (b) b.textContent = fmt(next);
+  }
+  function giftPanel(options) {
+    var cards = GIFTS.map(function (g) {
+      return '<button class="sb-game" data-gift="' + g.id + '"><span style="font-size:42px;line-height:1.1">' + g.emoji + '</span><b>' + esc(g.name) + '</b><small>🪙 ' + fmt(g.price) + ' coins</small></button>';
+    }).join('');
+    var view = panel('🎁 Send a Gift', '<div class="sb-card"><div class="sb-muted">CURRENT WALLET</div><div class="sb-balance" data-sb-gift-balance>' + fmt(walletBalance()) + ' 🪙</div><p class="sb-muted">গিফট পাঠালে একই virtual wallet থেকে coins কাটা হবে।</p></div><div class="sb-grid">' + cards + '</div>', options);
+    $all('[data-gift]', view).forEach(function (b) {
+      b.addEventListener('click', function () {
+        var gift = GIFTS.find(function (g) { return g.id === b.dataset.gift; });
+        if (gift) sendGift(gift, options);
+      });
+    });
+  }
+  function sendGift(gift, options) {
+    var before = walletBalance();
+    if (before < gift.price) return notice('এই gift পাঠানোর মতো coins নেই');
+    setWalletBalance(before - gift.price);
+    state.history.unshift('🎁 Gift ' + gift.name + ': −' + fmt(gift.price) + ' virtual coins');
+    state.history = state.history.slice(0, 40);
+    saveState();
+    if (socket && socket.connected && currentRoom) socket.emit('gift', { g: gift.emoji + ' ' + gift.name });
+    notice(gift.emoji + ' ' + gift.name + ' পাঠানো হয়েছে · −' + fmt(gift.price));
+    if (currentRoom) renderRoomView(currentRoom); else giftPanel(options);
   }
   function showLogin() {
     var view = panel('🔐 SHAKIL m game login', '<div class="sb-card"><p class="sb-muted">লগইন করলে প্রোফাইল, গেম স্ট্যাটস, wallet ও ranking অন্য ডিভাইসেও সিঙ্ক হবে।</p><input class="sb-input" id="sb-email" type="email" placeholder="ইমেইল"><br><br><input class="sb-input" id="sb-pass" type="password" placeholder="পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)"><br><br><input class="sb-input" id="sb-name" placeholder="নতুন অ্যাকাউন্টের নাম (ঐচ্ছিক)"><p class="sb-muted" id="sb-auth-msg"></p><div class="sb-row"><button class="sb-btn" data-login>লগইন</button><button class="sb-btn cyan" data-register>রেজিস্টার</button></div></div>');
@@ -257,13 +333,13 @@
   }
   function walletPanel() {
     var reqs = (state.requests || []).slice(0, 5).map(function (r) { return '<div class="sb-room"><div class="sb-room-copy"><b>' + fmt(r.amount) + ' coins</b><small>' + esc(r.time || '') + ' · ' + esc(r.status || 'pending') + '</small></div></div>'; }).join('');
-    var view = panel('💰 Virtual Wallet', '<div class="sb-card"><div class="sb-muted">MY BALANCE</div><div class="sb-balance">' + fmt(state.user.coin) + ' 🪙</div><div class="sb-muted">Free-play balance: ' + fmt(state.user.freeCoins) + '</div><div class="sb-row" style="margin-top:12px"><button class="sb-btn" data-daily>🎁 Daily reward</button><button class="sb-btn alt" data-request>📝 Coin request</button></div></div><div class="sb-card"><b>📊 Display-only coin rate</b><div class="sb-rate">' + fmt(COIN_RATE) + ' virtual coins = $1</div><p class="sb-muted">এই rate শুধু হিসাব দেখায়। coin বিক্রি, টাকা জমা, বাজি বা cash-out চালু নেই।</p></div><div class="sb-card"><b>📝 আমার coin requests</b>' + (reqs || '<p class="sb-muted">এখনো কোনো request নেই।</p>') + '</div><div class="sb-card"><b>📒 Virtual ledger</b>' + ((state.history || []).map(function (x) { return '<p class="sb-muted" style="margin:5px 0">' + esc(x) + '</p>'; }).join('') || '<p class="sb-muted">এখনো কোনো লেনদেন নেই।</p>') + '</div>');
+    var view = panel('💰 Virtual Wallet', '<div class="sb-card"><div class="sb-muted">GAME + GIFT WALLET</div><div class="sb-balance">' + fmt(walletBalance()) + ' 🪙</div><div class="sb-muted">এই balance গেম খেলা ও gift পাঠানো—দুই জায়গাতেই ব্যবহার হবে এবং refresh-এর পরও থাকবে।</div><div class="sb-row" style="margin-top:12px"><button class="sb-btn" data-daily>🎁 Daily reward</button><button class="sb-btn alt" data-request>📝 Coin request</button></div></div><div class="sb-card"><b>📊 Display-only coin rate</b><div class="sb-rate">' + fmt(COIN_RATE) + ' virtual coins = $1</div><p class="sb-muted">এই rate শুধু হিসাব দেখায়। coin বিক্রি, টাকা জমা, বাজি বা cash-out চালু নেই।</p></div><div class="sb-card"><b>📝 আমার coin requests</b>' + (reqs || '<p class="sb-muted">এখনো কোনো request নেই।</p>') + '</div><div class="sb-card"><b>📒 Virtual ledger</b>' + ((state.history || []).map(function (x) { return '<p class="sb-muted" style="margin:5px 0">' + esc(x) + '</p>'; }).join('') || '<p class="sb-muted">এখনো কোনো লেনদেন নেই।</p>') + '</div>');
     $('[data-daily]', view).addEventListener('click', dailyReward);
     $('[data-request]', view).addEventListener('click', requestCoins);
   }
   function dailyReward() {
     if (state.daily === todayKey()) return notice('আজকের reward নেওয়া হয়েছে');
-    state.daily = todayKey(); state.user.coin += 50; state.user.xp += 20; state.history.unshift('🎁 Daily reward +50 virtual coins'); saveState(); notice('+৫০ virtual coins ✅'); walletPanel();
+    state.daily = todayKey(); setWalletBalance(walletBalance() + 50); state.user.xp += 20; state.history.unshift('🎁 Daily reward +50 virtual coins'); saveState(); notice('+৫০ virtual coins ✅'); walletPanel();
   }
   function requestCoins() {
     var amount = Math.floor(Number(prompt('কত virtual coin request করবেন?', '1000000')) || 0);
@@ -322,9 +398,11 @@
     renderRoomView(currentRoom);
   }
   function renderRoomView(room) {
-    var view = panel('🎙️ ' + esc(room.name || 'Voice Room'), '<div class="sb-muted">Host: ' + esc(room.o || 'Host') + ' · ' + (room.n || (room.seats || []).filter(Boolean).length || 1) + '/5 online</div><div class="sb-seats" data-seats></div><div class="sb-row" style="margin:12px 0"><button class="sb-btn cyan" data-mic>🎤 Mic</button><button class="sb-btn alt" data-leave-room>← Rooms</button></div><div class="sb-chat" data-chat></div><div class="sb-row" style="margin-top:8px"><input class="sb-input" id="sb-chat-input" placeholder="মেসেজ লিখুন"><button class="sb-btn" data-send-chat>➤</button></div>');
+    var view = panel('🎙️ ' + esc(room.name || 'Voice Room'), '<div class="sb-muted">Host: ' + esc(room.o || 'Host') + ' · ' + (room.n || (room.seats || []).filter(Boolean).length || 1) + '/5 online</div><div class="sb-seats" data-seats></div><div class="sb-row" style="margin:12px 0"><button class="sb-btn cyan" data-mic>🎤 Mic</button><button class="sb-btn" data-room-games>🎮 Games</button><button class="sb-btn" data-room-gift>🎁 Gift</button><button class="sb-btn alt" data-leave-room>← Rooms</button></div><div class="sb-chat" data-chat></div><div class="sb-row" style="margin-top:8px"><input class="sb-input" id="sb-chat-input" placeholder="মেসেজ লিখুন"><button class="sb-btn" data-send-chat>➤</button></div>');
     $('[data-leave-room]', view).addEventListener('click', showRooms);
     $('[data-mic]', view).addEventListener('click', toggleMic);
+    $('[data-room-games]', view).addEventListener('click', function () { gamePanel({ keepRoom: true }); });
+    $('[data-room-gift]', view).addEventListener('click', function () { giftPanel({ keepRoom: true }); });
     $('[data-send-chat]', view).addEventListener('click', sendChat);
     var input = $('#sb-chat-input', view); input.addEventListener('keydown', function (e) { if (e.key === 'Enter') sendChat(); });
     paintRoom(room);
@@ -373,12 +451,17 @@
 
   function installDock() {
     if ($('#shakil-bridge-dock')) return;
+    var topGames = document.createElement('button');
+    topGames.id = 'shakil-bridge-top-games';
+    topGames.type = 'button';
+    topGames.textContent = '🎮 Games';
+    topGames.addEventListener('click', function () { gamePanel(); });
+    document.body.appendChild(topGames);
     var dock = document.createElement('div');
     dock.id = 'shakil-bridge-dock';
-    dock.innerHTML = '<button data-sb-action="games">🎮 গেমস</button><button data-sb-action="rooms">🎙️ রুম</button><button data-sb-action="rank">🏆 র‍্যাংক</button><button data-sb-action="user" data-sb-user>🔐 লগইন</button>';
+    dock.innerHTML = '<button data-sb-action="rooms">🎙️ রুম</button><button data-sb-action="rank">🏆 র‍্যাংক</button><button data-sb-action="user" data-sb-user>🔐 লগইন</button>';
     dock.addEventListener('click', function (e) {
       var action = e.target.closest('[data-sb-action]'); if (!action) return;
-      if (action.dataset.sbAction === 'games') gamePanel();
       if (action.dataset.sbAction === 'rooms') showRooms();
       if (action.dataset.sbAction === 'rank') leaderboardPanel();
       if (action.dataset.sbAction === 'user') profilePanel();
@@ -387,17 +470,23 @@
   }
   function interceptDesignButtons() {
     document.addEventListener('click', function (e) {
-      if (e.target.closest('#shakil-bridge-overlay') || e.target.closest('#shakil-bridge-dock')) return;
+      if (e.target.closest('#shakil-bridge-overlay') || e.target.closest('#shakil-bridge-dock') || e.target.closest('#shakil-bridge-top-games')) return;
       var button = e.target.closest('button'); if (!button) return;
       var text = (button.textContent || '').replace(/\s+/g, ' ').trim();
       if (text === 'Wallet' || text === 'ওয়ালেট') { e.preventDefault(); e.stopPropagation(); walletPanel(); return; }
       if (text === 'Profile' || text === 'প্রোফাইল') { e.preventDefault(); e.stopPropagation(); profilePanel(); return; }
+      if (text === 'Gift' || text === '🎁 Gift') { e.preventDefault(); e.stopPropagation(); giftPanel({ keepRoom: !!currentRoom }); return; }
+      if (/Mini Games/i.test(text)) { e.preventDefault(); e.stopPropagation(); gamePanel({ keepRoom: !!currentRoom }); return; }
       if (/Create Room|Lucky Room|Join Live Party|Create Voice Room/i.test(text)) { e.preventDefault(); e.stopPropagation(); showRooms(); }
     }, true);
   }
   function start() {
     installStyle(); installDock(); interceptDesignButtons(); setupFirebase();
     window.addEventListener('message', function (e) { var d = e.data || {}; if (d.type === 'shakil-wallet' && Number.isFinite(+d.balance)) recordGame(+d.balance); });
+    window.addEventListener('storage', function (e) {
+      if (e.key !== 'shakil_shell_state_v1' || !e.newValue) return;
+      try { var incoming = JSON.parse(e.newValue); if (incoming && incoming.user) { state = incoming; normalizeWalletState(state); refreshIdentity(); } } catch (_) {}
+    });
     if (!window.firebase) setTimeout(setupFirebase, 1200);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();

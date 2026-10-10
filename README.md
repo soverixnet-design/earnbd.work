@@ -2,7 +2,9 @@
 
 নতুন homepage হলো দেওয়া `shakil_x5f_game_x5f_voice_x5f_party.html`-এর design shell—পুরনো homepage layout সরিয়ে `index.html`-এ সেটি রাখা হয়েছে। `assets/shakil-bridge.js` এই shell-এর ভেতরে কার্যকর Games, Voice Rooms, Login/Profile, Wallet, Ranking এবং policy controls বসায়। সাধারণ ইউজার স্ক্রিনে admin panel দেখানো হয় না।
 
-ছয়টি লোকাল গেম একই design-এর Games dock থেকে খোলে: Ludo, Carrom, Night Food Wheel, Singh Food Wheel, Slots ও Jackpot Fruit। প্রতিটির নিজস্ব SVG logo `assets/game-logos/`-এ আছে; গেমের ফাইল `games/`-এ। কোনো Claude/artifact link-এর ওপর game launch নির্ভর করে না।
+ছয়টি লোকাল গেম একই design-এর Games button থেকে খোলে: Ludo, Carrom, Night Food Wheel, Singh Food Wheel, Slots ও Jackpot Fruit। প্রতিটির নিজস্ব SVG logo `assets/game-logos/`-এ আছে; গেমের ফাইল `games/`-এ। কোনো Claude/artifact link-এর ওপর game launch নির্ভর করে না।
+
+গেমের তালিকা বাইরে স্থায়ীভাবে দেখানো হয় না—উপরের `🎮 Games` button বা voice room-এর `🎮 Games` button চাপলে দেখা যায়। গেম ও gift একই virtual wallet balance ব্যবহার করে; খেলায় খরচ/জয় এবং gift পাঠানোর deduction local state, cross-tab storage sync এবং logged-in হলে Firestore player document-এ লেখা হয়, তাই refresh-এর পর balance থাকে।
 
 ## কীভাবে চালু/যোগ করবেন
 
