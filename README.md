@@ -1,10 +1,10 @@
 # SHAKIL m game
 
-নতুন homepage হলো `index.html`—এখানে Voice Lounge, profile, room list, chat, gifts, wallet demo, ranking এবং ছয়টি লোকাল গেম আছে: Ludo, Carrom, Night Food Wheel, Singh Food Wheel, Slots ও Jackpot Fruit। নতুন চারটি গেম `games/` ফোল্ডারে রাখা হয়েছে; কোনো Claude/artifact লিংকের ওপর নির্ভর করে না।
+নতুন homepage হলো `index.html`—এখানে Voice Lounge, profile, room list, chat, gifts, virtual wallet, ranking, Agency/Admin/BD policy এবং ছয়টি লোকাল গেম আছে: Ludo, Carrom, Night Food Wheel, Singh Food Wheel, Slots ও Jackpot Fruit। প্রতিটি গেমের নিজস্ব SVG logo `assets/game-logos/`-এ রাখা হয়েছে; নতুন চারটি গেম `games/` ফোল্ডারে রাখা হয়েছে; কোনো Claude/artifact লিংকের ওপর নির্ভর করে না। সাধারণ ইউজার স্ক্রিনে admin panel দেখানো হয় না।
 
 ## Login and game balance
 
-Firebase Email/Password login থাকলে profile, game statistics এবং global ranking Firestore-এ sync করার চেষ্টা করে; Firebase unavailable হলে local guest fallback থাকে। নতুন guest/account-এ `100,000,000` free-play coins থাকে। এগুলো virtual এবং cash-out বা real-money wagering-এর জন্য নয়। Gift/store coins আলাদা রাখা হয়েছে; wallet-এ কোনো টাকা জমা বা cash-out flow নেই।
+Firebase Email/Password login থাকলে profile, game statistics এবং global ranking Firestore-এ sync করার চেষ্টা করে; Firebase unavailable হলে local guest fallback থাকে। নতুন guest/account-এ `100,000,000` free-play coins থাকে। Wallet-এ প্রদর্শনী হিসাব হিসেবে `10,000,000 virtual coins = $1` দেখানো হয়, কিন্তু এগুলো virtual এবং cash-out বা real-money wagering-এর জন্য নয়। Gift/store coins আলাদা রাখা হয়েছে; wallet-এ কোনো টাকা জমা বা cash-out flow নেই। Virtual coin request শুধু in-app ledger-এ রেকর্ড হয়।
 `firestore.rules`-এ user-only profile এবং authenticated leaderboard access-এর baseline rules আছে; Firebase Console/CLI থেকে rules publish করার পর cloud sync চালু হবে।
 
 ## Live voice room
