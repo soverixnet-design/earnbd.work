@@ -4,8 +4,8 @@
 
 ## Login and game balance
 
-Firebase Email/Password login থাকলে profile ও game statistics Firestore-এ sync করার চেষ্টা করে; Firebase unavailable হলে local guest fallback থাকে। নতুন guest/account-এ `100,000,000` free-play coins থাকে। এগুলো virtual এবং cash-out বা real-money wagering-এর জন্য নয়। Gift/store coins আলাদা রাখা হয়েছে।
-`firestore.rules`-এ user-only profile access-এর baseline rules আছে; Firebase Console/CLI থেকে rules publish করার পর cloud sync চালু হবে।
+Firebase Email/Password login থাকলে profile, game statistics এবং global ranking Firestore-এ sync করার চেষ্টা করে; Firebase unavailable হলে local guest fallback থাকে। নতুন guest/account-এ `100,000,000` free-play coins থাকে। এগুলো virtual এবং cash-out বা real-money wagering-এর জন্য নয়। Gift/store coins আলাদা রাখা হয়েছে; wallet-এ কোনো টাকা জমা বা cash-out flow নেই।
+`firestore.rules`-এ user-only profile এবং authenticated leaderboard access-এর baseline rules আছে; Firebase Console/CLI থেকে rules publish করার পর cloud sync চালু হবে।
 
 ## Live voice room
 

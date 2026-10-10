@@ -14,5 +14,20 @@ service cloud.firestore {
         && request.resource.data.dia >= 0;
       allow delete: if false;
     }
+
+    match /leaderboards/{gameId}/players/{uid} {
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.points is int
+        && request.resource.data.points >= 0
+        && request.resource.data.played is int
+        && request.resource.data.played >= 0
+        && request.resource.data.wins is int
+        && request.resource.data.wins >= 0
+        && request.resource.data.losses is int
+        && request.resource.data.losses >= 0;
+      allow delete: if false;
+    }
   }
 }
